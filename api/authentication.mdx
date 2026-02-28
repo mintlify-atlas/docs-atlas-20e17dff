@@ -223,8 +223,32 @@ if (status === "authenticated") {
 
 ### Activate License
 
-```bash
+```http
 POST /api/commercial/activate
+```
+
+**Headers:**
+```json
+{
+  "licensekey": "your-license-key",
+  "instanceid": "unique-instance-id"
+}
+```
+
+**Body:**
+```json
+{
+  "reset": false
+}
+```
+
+**Response:**
+```json
+{
+  "message": "License activated",
+  "expiryDate": 1735689600,
+  "refresh": 86400
+}
 ```
 
 **Headers:**

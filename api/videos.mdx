@@ -13,7 +13,7 @@ The Video API allows you to manage videos, check transcription status, retrieve 
 
 Check the transcription status of a video.
 
-```
+```http
 GET /api/video/transcribe/status
 ```
 
@@ -52,7 +52,7 @@ curl -X GET "https://cap.so/api/video/transcribe/status?videoId=abc123" \
 
 Permanently delete a video.
 
-```
+```http
 DELETE /api/video/delete
 ```
 
@@ -89,7 +89,7 @@ curl -X DELETE "https://cap.so/api/video/delete?videoId=abc123" \
 
 Retrieve view count and analytics for a video.
 
-```
+```http
 GET /api/video/analytics
 ```
 
@@ -126,7 +126,7 @@ The desktop app has an additional video deletion endpoint.
 
 ### Delete Video (Desktop)
 
-```
+```http
 DELETE /api/desktop/video/delete
 ```
 
