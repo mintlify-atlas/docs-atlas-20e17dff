@@ -1,0 +1,542 @@
+---
+title: 'Web Platform Setup'
+description: 'Use Cap web platform or deploy your own self-hosted instance'
+---
+
+# Web Platform Setup
+
+Cap's web platform lets you access, manage, and share your recordings from any browser. You can use the hosted version at [cap.so](https://cap.so) or deploy your own self-hosted instance.
+
+## Using Cap Web (Hosted)
+
+### Creating an Account
+
+<Steps>
+  <Step title="Visit Cap.so">
+    Go to [cap.so](https://cap.so) in your web browser.
+  </Step>
+  
+  <Step title="Sign Up">
+    Click **Sign Up** and create an account:
+    
+    - Email and password
+    - Or sign in with OAuth providers (if configured)
+  </Step>
+  
+  <Step title="Verify Email">
+    Check your email for a verification link and click it to activate your account.
+    
+    <Note>
+      Email verification is required before you can upload recordings.
+    </Note>
+  </Step>
+  
+  <Step title="Complete Profile">
+    Set up your profile:
+    - Username
+    - Display name
+    - Profile picture (optional)
+    - Custom branding (Pro feature)
+  </Step>
+</Steps>
+
+### Connecting Desktop App
+
+To upload recordings from the desktop app:
+
+<Steps>
+  <Step title="Open Desktop App Settings">
+    Launch Cap desktop and click the settings icon.
+  </Step>
+  
+  <Step title="Sign In">
+    Click **Sign In** and enter your Cap.so credentials.
+  </Step>
+  
+  <Step title="Verify Connection">
+    Once signed in, your desktop app is connected to your Cap.so account.
+    
+    Recordings can now be uploaded directly from the desktop app.
+  </Step>
+</Steps>
+
+## Self-Hosting Cap
+
+Deploy Cap on your own infrastructure for complete control over your data.
+
+### Quick Start (Docker Compose)
+
+Get Cap running in one command:
+
+```bash
+git clone https://github.com/CapSoftware/Cap.git && cd Cap && docker compose up -d
+```
+
+Cap will be running at `http://localhost:3000`. That's it!
+
+<Info>
+  Since email isn't configured by default, login links will appear in the logs. View them with:
+  
+  ```bash
+  docker compose logs cap-web
+  ```
+</Info>
+
+### What's Included
+
+The Docker Compose setup includes:
+
+- **cap-web**: Next.js web application (port 3000)
+- **media-server**: Video processing service (port 3456)
+- **mysql**: MySQL 8.0 database
+- **minio**: S3-compatible object storage (ports 9000, 9001)
+- **minio-setup**: Automatic bucket configuration
+
+### Deployment Options
+
+<CardGroup cols={3}>
+  <Card title="Docker Compose" icon="docker">
+    **Best for**: VPS, home servers, any Docker host
+    
+    Full control over deployment
+  </Card>
+  
+  <Card title="Railway" icon="train" href="https://railway.com/new/template/PwpGcf">
+    **Best for**: One-click managed hosting
+    
+    Deploy in minutes
+  </Card>
+  
+  <Card title="Coolify" icon="cloud">
+    **Best for**: Self-hosted PaaS
+    
+    Use `docker-compose.coolify.yml`
+  </Card>
+</CardGroup>
+
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template/PwpGcf)
+
+### Production Configuration
+
+<Steps>
+  <Step title="Clone the Repository">
+    ```bash
+    git clone https://github.com/CapSoftware/Cap.git
+    cd Cap
+    ```
+  </Step>
+  
+  <Step title="Create Environment File">
+    Create a `.env` file with your production configuration:
+    
+    ```bash .env
+    # App URLs
+    CAP_URL=https://cap.yourdomain.com
+    S3_PUBLIC_URL=https://s3.yourdomain.com
+    
+    # Database
+    DATABASE_URL=mysql://cap:YOUR_DB_PASSWORD@mysql:3306/cap
+    MYSQL_PASSWORD=YOUR_DB_PASSWORD
+    MYSQL_ROOT_PASSWORD=YOUR_ROOT_PASSWORD
+    
+    # Security Keys (generate secure random strings)
+    DATABASE_ENCRYPTION_KEY=your_64_character_hex_string_here
+    NEXTAUTH_SECRET=your_32_character_secret_here
+    MEDIA_SERVER_WEBHOOK_SECRET=your_64_character_secret_here
+    
+    # S3 Storage (MinIO)
+    MINIO_ROOT_USER=cap-admin
+    MINIO_ROOT_PASSWORD=YOUR_MINIO_PASSWORD
+    CAP_AWS_ACCESS_KEY=cap-admin
+    CAP_AWS_SECRET_KEY=YOUR_MINIO_PASSWORD
+    CAP_AWS_BUCKET=cap
+    CAP_AWS_REGION=us-east-1
+    
+    # Email (optional but recommended)
+    RESEND_API_KEY=your_resend_api_key
+    RESEND_FROM_DOMAIN=noreply@yourdomain.com
+    
+    # Ports
+    CAP_PORT=3000
+    MINIO_PORT=9000
+    MINIO_CONSOLE_PORT=9001
+    ```
+    
+    <Warning>
+      **Generate secure random values** for all secrets and passwords. Never use the example values in production.
+      
+      Generate secure keys:
+      ```bash
+      # For 64-character hex string
+      openssl rand -hex 32
+      
+      # For 32-character secret
+      openssl rand -hex 16
+      ```
+    </Warning>
+  </Step>
+  
+  <Step title="Start Services">
+    ```bash
+    docker compose up -d
+    ```
+    
+    Monitor startup:
+    ```bash
+    docker compose logs -f
+    ```
+  </Step>
+  
+  <Step title="Verify Installation">
+    Check that all services are running:
+    ```bash
+    docker compose ps
+    ```
+    
+    You should see:
+    - cap-web (healthy)
+    - cap-media-server (healthy)
+    - cap-mysql (healthy)
+    - cap-minio (healthy)
+    - cap-minio-setup (exited 0)
+  </Step>
+</Steps>
+
+### Service Configuration
+
+#### Email Setup (Resend)
+
+For production, configure email to enable:
+- User registration and login
+- Password resets
+- Share notifications
+
+<Steps>
+  <Step title="Get Resend API Key">
+    1. Sign up at [resend.com](https://resend.com)
+    2. Verify your domain
+    3. Generate an API key
+  </Step>
+  
+  <Step title="Add to Environment">
+    ```bash .env
+    RESEND_API_KEY=re_your_api_key_here
+    RESEND_FROM_DOMAIN=noreply@yourdomain.com
+    ```
+  </Step>
+  
+  <Step title="Restart Services">
+    ```bash
+    docker compose restart cap-web
+    ```
+  </Step>
+</Steps>
+
+#### AI Features (Optional)
+
+Enable AI-powered transcription and summaries:
+
+```bash .env
+# Deepgram for transcription
+DEEPGRAM_API_KEY=your_deepgram_api_key
+
+# Groq for AI summaries
+GROQ_API_KEY=your_groq_api_key
+```
+
+<Info>
+  AI features are optional. Cap works perfectly without them, but they enhance the user experience with automatic transcriptions and summaries.
+</Info>
+
+#### Analytics (Tinybird)
+
+For viewer analytics and insights:
+
+```bash .env
+TINYBIRD_ADMIN_TOKEN=your_tinybird_token
+TINYBIRD_HOST=https://api.tinybird.co
+```
+
+Set up analytics:
+```bash
+pnpm analytics:setup
+```
+
+<Warning>
+  The `analytics:setup` command is **destructive** and will synchronize your Tinybird workspace to match Cap's schema. Run `pnpm analytics:check` first to verify.
+</Warning>
+
+#### External S3 Storage
+
+Instead of MinIO, use AWS S3 or compatible services:
+
+```bash .env
+# AWS S3
+CAP_AWS_ACCESS_KEY=your_aws_access_key
+CAP_AWS_SECRET_KEY=your_aws_secret_key
+CAP_AWS_BUCKET=your-cap-bucket
+CAP_AWS_REGION=us-east-1
+S3_PUBLIC_ENDPOINT=https://s3.amazonaws.com
+S3_INTERNAL_ENDPOINT=https://s3.amazonaws.com
+S3_PATH_STYLE=false
+
+# Or use Cloudflare R2, Backblaze B2, etc.
+```
+
+### SSL/HTTPS Setup
+
+For production, use a reverse proxy like Nginx or Caddy:
+
+<CodeGroup>
+```nginx Nginx
+server {
+    listen 443 ssl http2;
+    server_name cap.yourdomain.com;
+    
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
+    
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+server {
+    listen 443 ssl http2;
+    server_name s3.yourdomain.com;
+    
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
+    
+    location / {
+        proxy_pass http://localhost:9000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # Allow large uploads
+        client_max_body_size 5G;
+    }
+}
+```
+
+```caddyfile Caddy
+cap.yourdomain.com {
+    reverse_proxy localhost:3000
+}
+
+s3.yourdomain.com {
+    reverse_proxy localhost:9000
+    
+    # Allow large uploads
+    request_body {
+        max_size 5GB
+    }
+}
+```
+</CodeGroup>
+
+### Connecting Desktop App to Self-Hosted Instance
+
+To use your self-hosted Cap with the desktop app:
+
+<Steps>
+  <Step title="Open Desktop Settings">
+    Launch Cap desktop app and open Settings.
+  </Step>
+  
+  <Step title="Enter Server URL">
+    In **Cap Server URL**, enter:
+    ```
+    https://cap.yourdomain.com
+    ```
+  </Step>
+  
+  <Step title="Sign In">
+    Sign in with your self-hosted account credentials.
+  </Step>
+  
+  <Step title="Verify Connection">
+    Upload a test recording to verify the connection works.
+  </Step>
+</Steps>
+
+## Maintenance
+
+### Viewing Logs
+
+```bash
+# All services
+docker compose logs -f
+
+# Specific service
+docker compose logs -f cap-web
+docker compose logs -f mysql
+docker compose logs -f minio
+```
+
+### Backing Up Data
+
+<Steps>
+  <Step title="Database Backup">
+    ```bash
+    docker exec cap-mysql mysqldump -u cap -p cap > backup.sql
+    ```
+  </Step>
+  
+  <Step title="Storage Backup">
+    ```bash
+    # Backup MinIO data
+    docker run --rm \
+      -v cap_cap-minio-data:/data \
+      -v $(pwd):/backup \
+      alpine tar czf /backup/minio-backup.tar.gz /data
+    ```
+  </Step>
+  
+  <Step title="Store Backups Safely">
+    - Copy backups to remote storage
+    - Test restore procedures regularly
+    - Automate backups with cron
+  </Step>
+</Steps>
+
+### Updating Cap
+
+<Steps>
+  <Step title="Pull Latest Changes">
+    ```bash
+    cd Cap
+    git pull origin main
+    ```
+  </Step>
+  
+  <Step title="Rebuild Images">
+    ```bash
+    docker compose build --no-cache
+    ```
+  </Step>
+  
+  <Step title="Restart Services">
+    ```bash
+    docker compose down
+    docker compose up -d
+    ```
+  </Step>
+  
+  <Step title="Verify Update">
+    ```bash
+    docker compose ps
+    docker compose logs -f cap-web
+    ```
+  </Step>
+</Steps>
+
+### Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Services won't start">
+    Check Docker resources:
+    ```bash
+    docker system df
+    docker system prune
+    ```
+    
+    Verify ports aren't in use:
+    ```bash
+    # Linux/macOS
+    lsof -i :3000
+    lsof -i :9000
+    
+    # Windows
+    netstat -ano | findstr :3000
+    ```
+  </Accordion>
+  
+  <Accordion title="Database connection errors">
+    1. Check MySQL is healthy: `docker compose ps`
+    2. Verify DATABASE_URL in .env is correct
+    3. Check MySQL logs: `docker compose logs mysql`
+    4. Try restarting MySQL: `docker compose restart mysql`
+  </Accordion>
+  
+  <Accordion title="File upload fails">
+    1. Check MinIO is running: `docker compose ps minio`
+    2. Verify bucket exists: Access MinIO console at `http://localhost:9001`
+    3. Check S3 credentials in .env match MinIO settings
+    4. Look for errors in cap-web logs
+  </Accordion>
+  
+  <Accordion title="Can't access MinIO console">
+    Default credentials:
+    - Username: Value of `MINIO_ROOT_USER` in .env
+    - Password: Value of `MINIO_ROOT_PASSWORD` in .env
+    
+    Access at: `http://localhost:9001`
+  </Accordion>
+  
+  <Accordion title="Out of disk space">
+    Check Docker volumes:
+    ```bash
+    docker system df -v
+    ```
+    
+    Clean up:
+    ```bash
+    # Remove unused images
+    docker image prune -a
+    
+    # Remove unused volumes (WARNING: data loss)
+    docker volume prune
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## System Requirements
+
+### Minimum Requirements
+
+- **CPU**: 2 cores
+- **RAM**: 4GB
+- **Storage**: 20GB + space for recordings
+- **OS**: Linux, macOS, or Windows with Docker
+
+### Recommended for Production
+
+- **CPU**: 4+ cores
+- **RAM**: 8GB+
+- **Storage**: 100GB+ SSD
+- **Network**: 100 Mbps+ bandwidth
+
+<Info>
+  Storage needs grow with usage. Plan for ~100MB per minute of recording, plus database overhead.
+</Info>
+
+## Getting Help
+
+<CardGroup cols={2}>
+  <Card title="Self-Hosting Docs" icon="book" href="https://cap.so/docs/self-hosting">
+    Full self-hosting documentation
+  </Card>
+  
+  <Card title="Discord Community" icon="discord" href="https://discord.com/invite/y8gdQ3WRN3">
+    Get help from the community
+  </Card>
+  
+  <Card title="GitHub Issues" icon="github" href="https://github.com/CapSoftware/Cap/issues">
+    Report bugs or request features
+  </Card>
+  
+  <Card title="Contributing" icon="code" href="https://github.com/CapSoftware/Cap/blob/main/CONTRIBUTING.md">
+    Contribute to Cap development
+  </Card>
+</CardGroup>

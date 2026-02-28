@@ -1,0 +1,126 @@
+---
+title: "Self-Hosting Overview"
+description: "Deploy Cap on your own infrastructure for complete control and privacy"
+---
+
+Cap is the open source alternative to Loom. Self-hosting Cap gives you complete control over your video content, user data, and infrastructure while providing the same powerful features as the hosted version at cap.so.
+
+## Why Self-Host Cap?
+
+**Privacy & Control**
+- Keep all video content on your own servers
+- Control user data and comply with data residency requirements
+- No third-party dependencies for core functionality
+
+**Customization**
+- Deploy on your preferred infrastructure
+- Integrate with existing authentication systems
+- Configure storage backends to match your needs
+
+**Cost Efficiency**
+- No per-seat pricing
+- Pay only for infrastructure costs
+- Unlimited users and videos
+
+## What's Included
+
+A self-hosted Cap deployment includes:
+
+<CardGroup cols={2}>
+  <Card title="Cap Web" icon="globe">
+    Next.js application for video sharing, playback, and management
+  </Card>
+  <Card title="Media Server" icon="video">
+    FFmpeg-based processing for video encoding and optimization
+  </Card>
+  <Card title="MySQL Database" icon="database">
+    Stores user data, video metadata, and application state
+  </Card>
+  <Card title="S3 Storage" icon="box">
+    MinIO or AWS S3 for video file storage and delivery
+  </Card>
+</CardGroup>
+
+## System Requirements
+
+### Minimum Requirements
+
+- **CPU**: 2 cores
+- **RAM**: 4GB
+- **Storage**: 20GB + space for video files
+- **Network**: 100 Mbps upload/download
+
+### Recommended for Production
+
+- **CPU**: 4+ cores
+- **RAM**: 8GB+
+- **Storage**: SSD with 100GB+ (database) + separate volume for videos
+- **Network**: 1 Gbps connection
+
+### Software Prerequisites
+
+<Tabs>
+  <Tab title="Docker Compose">
+    - Docker 24.0+
+    - Docker Compose 2.0+
+  </Tab>
+  <Tab title="Manual Setup">
+    - Node.js 20+
+    - MySQL 8.0+
+    - S3-compatible storage
+    - FFmpeg 6.0+
+  </Tab>
+</Tabs>
+
+## Deployment Options
+
+Choose the deployment method that best fits your infrastructure:
+
+| Method | Best For | Difficulty | Setup Time |
+|--------|----------|------------|------------|
+| [Docker Compose](/self-hosting/docker-compose) | VPS, home servers, any Docker host | Easy | 5 minutes |
+| [Railway](/self-hosting/railway) | One-click managed hosting | Easiest | 2 minutes |
+| [Coolify](/self-hosting/coolify) | Self-hosted PaaS platform | Easy | 10 minutes |
+
+## Feature Comparison
+
+| Feature | Self-Hosted | cap.so Cloud |
+|---------|-------------|---------------|
+| Video recording & sharing | ✅ | ✅ |
+| Unlimited users | ✅ | ❌ (paid tiers) |
+| Custom domain | ✅ | ✅ (Pro) |
+| AI transcription | ✅ (with API key) | ✅ |
+| AI summaries | ✅ (with API key) | ✅ |
+| Comments & reactions | ✅ | ✅ |
+| Analytics dashboard | ✅ (with Tinybird) | ✅ |
+| Email support | ❌ | ✅ |
+| Managed infrastructure | ❌ | ✅ |
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/self-hosting/quick-start">
+    Get Cap running in under 5 minutes
+  </Card>
+  <Card title="Docker Compose" icon="docker" href="/self-hosting/docker-compose">
+    Detailed Docker deployment guide
+  </Card>
+  <Card title="Environment Variables" icon="gear" href="/self-hosting/environment-variables">
+    Complete configuration reference
+  </Card>
+  <Card title="Troubleshooting" icon="wrench" href="/self-hosting/troubleshooting">
+    Common issues and solutions
+  </Card>
+</CardGroup>
+
+<Warning>
+  Self-hosting requires technical expertise in Docker, databases, and web server administration. Make sure you understand the security implications and maintenance requirements before deploying to production.
+</Warning>
+
+## Community & Support
+
+While we don't provide direct support for self-hosted deployments, the community is here to help:
+
+- [GitHub Issues](https://github.com/CapSoftware/Cap/issues) - Report bugs and request features
+- [GitHub Discussions](https://github.com/CapSoftware/Cap/discussions) - Ask questions and share solutions
+- [Discord Community](https://discord.gg/cap) - Chat with other self-hosters

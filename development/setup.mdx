@@ -1,0 +1,170 @@
+---
+title: Development Setup
+description: Set up your local development environment for Cap
+---
+
+## Overview
+
+Cap is an open source and privacy-focused alternative to Loom. It's a video messaging tool built with a modern stack including Rust, React, Next.js, and Tauri.
+
+## Prerequisites
+
+Before setting up Cap, ensure you have the following installed:
+
+- **Node.js** version 20 or higher
+- **Rust** version 1.88.0 or higher
+- **pnpm** version 8.10.5 or higher (recommended: 10.5.2)
+- **Docker** ([OrbStack](https://orbstack.dev/) recommended for macOS)
+
+### Platform-Specific Requirements
+
+**Windows:**
+- LLVM
+- Clang
+- VCPKG
+
+**macOS:**
+- CMake
+
+<Note>
+  `pnpm cap-setup` does not yet install these platform-specific dependencies automatically.
+</Note>
+
+## Installation
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/CapSoftware/Cap.git
+cd Cap
+```
+
+### 2. Install Dependencies
+
+```bash
+pnpm install
+```
+
+### 3. Setup Native Dependencies
+
+Install native dependencies including FFmpeg:
+
+```bash
+pnpm cap-setup
+```
+
+### 4. Configure Environment
+
+Generate a `.env` file configured for your environment:
+
+```bash
+pnpm env-setup
+```
+
+This interactive command will:
+- Ask which apps you intend to run
+- Configure Docker for local S3 (MinIO) and MySQL
+- Allow you to provide custom overrides
+
+### 5. Setup Database
+
+Generate and push database schema:
+
+```bash
+pnpm db:generate
+pnpm db:push
+```
+
+## Running Cap
+
+### Run Both Desktop and Web
+
+```bash
+pnpm dev
+```
+
+This starts both `@cap/desktop` and `@cap/web` together.
+
+### Run Desktop Only
+
+```bash
+pnpm dev:desktop
+```
+
+### Run Web Only
+
+```bash
+pnpm dev:web
+```
+
+Or alternatively:
+
+```bash
+cd apps/web
+pnpm dev
+```
+
+## macOS Permissions
+
+When running `@cap/desktop` from a terminal on macOS, permissions (screen recording, microphone, etc.) apply to the **terminal application**, not the Cap app.
+
+<Warning>
+  If you run `pnpm dev:desktop` in macOS Terminal.app, grant permissions to Terminal.app, not Cap - Development.app.
+</Warning>
+
+## Recording Storage Locations
+
+Your recordings are stored in the following locations:
+
+**macOS:**
+```
+~/Library/Application Support/so.cap.desktop.dev/recordings
+```
+
+**Windows:**
+```
+%programfiles%/so.cap.desktop.dev/recordings
+```
+
+## Docker Services
+
+When running `pnpm dev` or `pnpm dev:web`, Docker will automatically start:
+- MySQL database
+- MinIO S3 server
+
+To manage Docker services manually:
+
+```bash
+pnpm docker:up
+pnpm docker:stop
+pnpm docker:clean
+```
+
+## Database Management
+
+Open Drizzle Studio to view and manage your database:
+
+```bash
+pnpm db:studio
+```
+
+## Quality Tools
+
+Run code quality checks:
+
+```bash
+pnpm lint
+pnpm format
+pnpm typecheck
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Architecture" icon="diagram-project" href="/development/architecture">
+    Learn about the monorepo structure and codebase organization
+  </Card>
+  <Card title="Contributing" icon="code-pull-request" href="/development/contributing">
+    Guidelines for contributing to Cap
+  </Card>
+</CardGroup>

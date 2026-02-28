@@ -1,0 +1,552 @@
+---
+title: "S3 Storage Configuration"
+description: "Configure S3-compatible storage for video files and assets"
+---
+
+Cap stores all video files, thumbnails, and assets in S3-compatible object storage. This guide covers configuration for various S3 providers.
+
+## Storage Providers
+
+Cap works with any S3-compatible storage:
+
+<CardGroup cols={2}>
+  <Card title="MinIO (Default)" icon="box">
+    Included in Docker Compose, runs locally
+  </Card>
+  <Card title="AWS S3" icon="aws">
+    Industry standard, global CDN
+  </Card>
+  <Card title="Cloudflare R2" icon="cloudflare">
+    Zero egress fees, fast globally
+  </Card>
+  <Card title="Backblaze B2" icon="database">
+    Most cost-effective option
+  </Card>
+</CardGroup>
+
+## MinIO (Default Setup)
+
+The Docker Compose deployment includes MinIO out of the box.
+
+### Configuration
+
+Default environment variables:
+
+```bash .env
+# MinIO Credentials
+MINIO_ROOT_USER=capadmin
+MINIO_ROOT_PASSWORD=your-secure-password
+
+# Cap S3 Configuration
+CAP_AWS_BUCKET=cap
+CAP_AWS_REGION=us-east-1
+CAP_AWS_ACCESS_KEY=capadmin
+CAP_AWS_SECRET_KEY=your-secure-password
+S3_PUBLIC_ENDPOINT=http://localhost:9000
+S3_INTERNAL_ENDPOINT=http://minio:9000
+S3_PATH_STYLE=true
+```
+
+### Access MinIO Console
+
+MinIO includes a web-based admin console:
+
+```
+http://localhost:9001
+```
+
+Login with:
+- **Username**: Value of `MINIO_ROOT_USER`
+- **Password**: Value of `MINIO_ROOT_PASSWORD`
+
+### Production MinIO Setup
+
+For production with public access:
+
+<Steps>
+  <Step title="Configure Domain">
+    Point a subdomain to your server:
+
+    ```
+    s3.yourdomain.com → Your server IP
+    ```
+  </Step>
+
+  <Step title="Update Environment Variables">
+    ```bash .env
+    S3_PUBLIC_ENDPOINT=https://s3.yourdomain.com
+    ```
+  </Step>
+
+  <Step title="Configure Reverse Proxy">
+    See [SSL/HTTPS Setup](/self-hosting/ssl-https) for Nginx/Caddy configuration.
+  </Step>
+
+  <Step title="Test Access">
+    Videos should now be accessible at:
+    ```
+    https://s3.yourdomain.com/cap/video-id.mp4
+    ```
+  </Step>
+</Steps>
+
+### MinIO Limitations
+
+<Warning>
+  MinIO on Docker has limitations for production:
+
+  - Single point of failure
+  - No automatic backups
+  - Limited to server disk space
+  - No built-in CDN
+
+  Consider external S3 for production deployments.
+</Warning>
+
+## AWS S3
+
+AWS S3 is the most reliable option with global CDN through CloudFront.
+
+### Setup Steps
+
+<Steps>
+  <Step title="Create S3 Bucket">
+    1. Go to [AWS S3 Console](https://s3.console.aws.amazon.com/)
+    2. Click **Create bucket**
+    3. Configure:
+       - **Bucket name**: `cap-videos-prod` (must be globally unique)
+       - **Region**: Choose closest to your users
+       - **Block Public Access**: Disable (we'll set specific permissions)
+    4. Create bucket
+  </Step>
+
+  <Step title="Configure Bucket Policy">
+    Allow public read access for videos:
+
+    1. Go to bucket **Permissions** → **Bucket Policy**
+    2. Add this policy:
+
+    ```json
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "PublicReadGetObject",
+          "Effect": "Allow",
+          "Principal": "*",
+          "Action": "s3:GetObject",
+          "Resource": "arn:aws:s3:::cap-videos-prod/*"
+        }
+      ]
+    }
+    ```
+
+    Replace `cap-videos-prod` with your bucket name.
+  </Step>
+
+  <Step title="Enable CORS">
+    Allow browser access from your domain:
+
+    1. Go to **Permissions** → **CORS configuration**
+    2. Add:
+
+    ```json
+    [
+      {
+        "AllowedHeaders": ["*"],
+        "AllowedMethods": ["GET", "PUT", "POST", "DELETE"],
+        "AllowedOrigins": ["https://cap.yourdomain.com"],
+        "ExposeHeaders": ["ETag"]
+      }
+    ]
+    ```
+  </Step>
+
+  <Step title="Create IAM User">
+    1. Go to [IAM Console](https://console.aws.amazon.com/iam/)
+    2. Click **Users** → **Add user**
+    3. User name: `cap-s3-user`
+    4. Access type: **Programmatic access**
+    5. Attach policy: **AmazonS3FullAccess** (or create custom policy below)
+    6. Save **Access Key ID** and **Secret Access Key**
+
+    **Custom policy** (more secure):
+    ```json
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": [
+            "s3:PutObject",
+            "s3:GetObject",
+            "s3:DeleteObject",
+            "s3:ListBucket"
+          ],
+          "Resource": [
+            "arn:aws:s3:::cap-videos-prod",
+            "arn:aws:s3:::cap-videos-prod/*"
+          ]
+        }
+      ]
+    }
+    ```
+  </Step>
+
+  <Step title="Configure Cap">
+    Update your `.env` file:
+
+    ```bash .env
+    CAP_AWS_BUCKET=cap-videos-prod
+    CAP_AWS_REGION=us-east-1
+    CAP_AWS_ACCESS_KEY=AKIAIOSFODNN7EXAMPLE
+    CAP_AWS_SECRET_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+    S3_PUBLIC_ENDPOINT=https://s3.amazonaws.com
+    S3_PATH_STYLE=false
+    ```
+
+    Remove MinIO from docker-compose.yml (optional).
+  </Step>
+
+  <Step title="Restart Cap">
+    ```bash
+    docker compose down
+    docker compose up -d
+    ```
+  </Step>
+</Steps>
+
+### CloudFront CDN (Optional)
+
+Add CloudFront for faster global delivery:
+
+<Steps>
+  <Step title="Create Distribution">
+    1. Go to [CloudFront Console](https://console.aws.amazon.com/cloudfront/)
+    2. Click **Create Distribution**
+    3. Configure:
+       - **Origin Domain**: Select your S3 bucket
+       - **Viewer Protocol Policy**: Redirect HTTP to HTTPS
+       - **Allowed HTTP Methods**: GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE
+       - **Cache Policy**: CachingOptimized
+  </Step>
+
+  <Step title="Update Cap Configuration">
+    ```bash .env
+    CAP_AWS_BUCKET_URL=https://d111111abcdef8.cloudfront.net
+    ```
+
+    Or use custom domain:
+    ```bash .env
+    CAP_AWS_BUCKET_URL=https://cdn.yourdomain.com
+    ```
+  </Step>
+</Steps>
+
+## Cloudflare R2
+
+Cloudflare R2 offers S3-compatible storage with **zero egress fees**.
+
+<Steps>
+  <Step title="Create R2 Bucket">
+    1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com/) → **R2**
+    2. Click **Create bucket**
+    3. Name: `cap-videos`
+    4. Location: Automatic (or choose region)
+  </Step>
+
+  <Step title="Enable Public Access">
+    1. Go to bucket **Settings**
+    2. Click **Allow Access** under "Public Access"
+    3. Cloudflare provides a public URL:
+       ```
+       https://pub-xxxxxx.r2.dev
+       ```
+  </Step>
+
+  <Step title="Create API Token">
+    1. Go to **R2** → **Manage R2 API Tokens**
+    2. Click **Create API Token**
+    3. Permissions:
+       - **Object Read & Write**
+       - Apply to specific bucket: `cap-videos`
+    4. Save **Access Key ID** and **Secret Access Key**
+  </Step>
+
+  <Step title="Configure Cap">
+    ```bash .env
+    CAP_AWS_BUCKET=cap-videos
+    CAP_AWS_REGION=auto
+    CAP_AWS_ACCESS_KEY=your-r2-access-key-id
+    CAP_AWS_SECRET_KEY=your-r2-secret-key
+    S3_PUBLIC_ENDPOINT=https://pub-xxxxxx.r2.dev
+    S3_INTERNAL_ENDPOINT=https://xxxxxx.r2.cloudflarestorage.com
+    S3_PATH_STYLE=true
+    ```
+
+    Find the internal endpoint in R2 bucket settings.
+  </Step>
+
+  <Step title="Custom Domain (Optional)">
+    1. Go to bucket **Settings** → **Custom Domains**
+    2. Add: `cdn.yourdomain.com`
+    3. Add CNAME record in Cloudflare DNS:
+       ```
+       cdn.yourdomain.com → pub-xxxxxx.r2.dev
+       ```
+    4. Update Cap:
+       ```bash .env
+       S3_PUBLIC_ENDPOINT=https://cdn.yourdomain.com
+       ```
+  </Step>
+</Steps>
+
+<Note>
+  R2 is **significantly cheaper** than S3 for high-traffic deployments due to zero egress fees.
+</Note>
+
+## Backblaze B2
+
+Backblaze B2 is the most cost-effective S3-compatible storage.
+
+<Steps>
+  <Step title="Create Bucket">
+    1. Sign up at [backblaze.com](https://www.backblaze.com/b2/)
+    2. Go to **Buckets** → **Create a Bucket**
+    3. Configure:
+       - **Bucket Name**: `cap-videos`
+       - **Files in Bucket**: Public
+       - **Encryption**: Disable
+  </Step>
+
+  <Step title="Create Application Key">
+    1. Go to **App Keys** → **Add a New Application Key**
+    2. Name: `cap-server`
+    3. Access: Read and Write
+    4. Bucket: `cap-videos`
+    5. Save **keyID** and **applicationKey**
+  </Step>
+
+  <Step title="Get Endpoint URL">
+    In bucket details, find:
+    - **Endpoint**: `s3.us-west-004.backblazeb2.com`
+    - **Region**: `us-west-004`
+  </Step>
+
+  <Step title="Configure Cap">
+    ```bash .env
+    CAP_AWS_BUCKET=cap-videos
+    CAP_AWS_REGION=us-west-004
+    CAP_AWS_ACCESS_KEY=your-key-id
+    CAP_AWS_SECRET_KEY=your-application-key
+    S3_PUBLIC_ENDPOINT=https://s3.us-west-004.backblazeb2.com
+    S3_PATH_STYLE=true
+    ```
+  </Step>
+</Steps>
+
+### Backblaze Pricing
+
+- **Storage**: $6/TB/month (vs $23/TB for S3)
+- **Downloads**: First 3x storage is free, then $0.01/GB
+- **API calls**: Included
+
+## Other S3 Providers
+
+### DigitalOcean Spaces
+
+```bash .env
+CAP_AWS_BUCKET=cap-videos
+CAP_AWS_REGION=nyc3
+CAP_AWS_ACCESS_KEY=your-spaces-key
+CAP_AWS_SECRET_KEY=your-spaces-secret
+S3_PUBLIC_ENDPOINT=https://nyc3.digitaloceanspaces.com
+S3_PATH_STYLE=true
+```
+
+### Wasabi
+
+```bash .env
+CAP_AWS_BUCKET=cap-videos
+CAP_AWS_REGION=us-east-1
+CAP_AWS_ACCESS_KEY=your-wasabi-key
+CAP_AWS_SECRET_KEY=your-wasabi-secret
+S3_PUBLIC_ENDPOINT=https://s3.wasabisys.com
+S3_PATH_STYLE=true
+```
+
+### Linode Object Storage
+
+```bash .env
+CAP_AWS_BUCKET=cap-videos
+CAP_AWS_REGION=us-east-1
+CAP_AWS_ACCESS_KEY=your-linode-key
+CAP_AWS_SECRET_KEY=your-linode-secret
+S3_PUBLIC_ENDPOINT=https://us-east-1.linodeobjects.com
+S3_PATH_STYLE=true
+```
+
+## Testing Storage Configuration
+
+Verify your S3 setup:
+
+<Steps>
+  <Step title="Upload Test Video">
+    Record and upload a video using Cap Desktop.
+  </Step>
+
+  <Step title="Check Logs">
+    ```bash
+    docker compose logs cap-web | grep -i s3
+    ```
+
+    Look for successful upload messages.
+  </Step>
+
+  <Step title="Verify Public Access">
+    Open the video share link. If the video plays, S3 is configured correctly.
+  </Step>
+
+  <Step title="Check Bucket">
+    Log in to your S3 provider console and verify files are being uploaded.
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+### Videos Won't Upload
+
+**Check credentials**:
+```bash
+docker compose logs cap-web | grep -i "access denied\|unauthorized"
+```
+
+Verify:
+- `CAP_AWS_ACCESS_KEY` and `CAP_AWS_SECRET_KEY` are correct
+- IAM user has `PutObject` permission
+
+### Videos Upload but Won't Play
+
+**Public access issue**:
+
+1. Verify bucket policy allows public read
+2. Check CORS configuration includes your domain
+3. Test direct file URL in browser
+
+**Fix for S3**:
+```json
+{
+  "Effect": "Allow",
+  "Principal": "*",
+  "Action": "s3:GetObject",
+  "Resource": "arn:aws:s3:::your-bucket/*"
+}
+```
+
+### CORS Errors in Browser
+
+Update CORS configuration to include your Cap domain:
+
+```json
+[
+  {
+    "AllowedOrigins": ["https://cap.yourdomain.com"],
+    "AllowedMethods": ["GET", "PUT", "POST"],
+    "AllowedHeaders": ["*"]
+  }
+]
+```
+
+### Wrong Endpoint
+
+Check logs for connection errors:
+```bash
+docker compose logs cap-web | grep -i endpoint
+```
+
+Verify:
+- `S3_PUBLIC_ENDPOINT` is accessible from browser
+- `S3_INTERNAL_ENDPOINT` is accessible from Docker container
+- `S3_PATH_STYLE` matches your provider
+
+## Migration Between Providers
+
+Move videos from one S3 provider to another:
+
+<Steps>
+  <Step title="Install AWS CLI or rclone">
+    ```bash
+    # AWS CLI
+    pip install awscli
+
+    # Or rclone (recommended)
+    curl https://rclone.org/install.sh | sudo bash
+    ```
+  </Step>
+
+  <Step title="Configure Source and Destination">
+    For rclone, configure both providers:
+    ```bash
+    rclone config
+    ```
+
+    Create remotes for source and destination.
+  </Step>
+
+  <Step title="Copy Files">
+    ```bash
+    # Using rclone
+    rclone copy source:cap-bucket dest:cap-bucket --progress
+
+    # Using AWS CLI (S3 to S3)
+    aws s3 sync s3://old-bucket s3://new-bucket
+    ```
+  </Step>
+
+  <Step title="Update Cap Configuration">
+    Update `.env` with new S3 credentials and restart:
+    ```bash
+    docker compose down
+    docker compose up -d
+    ```
+  </Step>
+
+  <Step title="Verify">
+    Test that old videos still play with new S3 endpoint.
+  </Step>
+</Steps>
+
+## Cost Comparison
+
+Monthly costs for 1TB storage + 1TB egress:
+
+| Provider | Storage | Egress | Total |
+|----------|---------|--------|-------|
+| MinIO (self-hosted) | Server cost | $0 | ~$20-50 |
+| AWS S3 | $23 | $90 | **$113** |
+| Cloudflare R2 | $15 | $0 | **$15** |
+| Backblaze B2 | $6 | $0* | **$6** |
+| Wasabi | $6.99 | $0* | **$6.99** |
+
+*Free egress up to limits
+
+<Note>
+  For high-traffic deployments, **Cloudflare R2** or **Backblaze B2** offer the best value.
+</Note>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Environment Variables" icon="gear" href="/self-hosting/environment-variables">
+    Complete S3 variable reference
+  </Card>
+  <Card title="SSL/HTTPS" icon="lock" href="/self-hosting/ssl-https">
+    Secure S3 endpoints with SSL
+  </Card>
+  <Card title="Scaling" icon="chart-line" href="/self-hosting/scaling">
+    Optimize storage for production
+  </Card>
+  <Card title="Troubleshooting" icon="wrench" href="/self-hosting/troubleshooting">
+    Debug storage issues
+  </Card>
+</CardGroup>

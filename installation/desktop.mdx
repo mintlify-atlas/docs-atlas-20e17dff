@@ -1,0 +1,329 @@
+---
+title: 'Desktop App Installation'
+description: 'Install Cap desktop app on macOS and Windows for native screen recording'
+---
+
+# Desktop App Installation
+
+The Cap desktop app is built with Tauri (Rust) and SolidStart, providing native performance and a lightweight footprint on your system.
+
+## System Requirements
+
+### macOS
+
+- **Operating System**: macOS 11 (Big Sur) or later
+- **Processor**: Apple Silicon (M1/M2/M3) or Intel
+- **Memory**: 4GB RAM minimum, 8GB recommended
+- **Storage**: 200MB for app, additional space for recordings
+
+### Windows
+
+- **Operating System**: Windows 10 (version 1809 or later) or Windows 11
+- **Processor**: x64 processor
+- **Memory**: 4GB RAM minimum, 8GB recommended
+- **Storage**: 200MB for app, additional space for recordings
+
+## Installation
+
+### macOS Installation
+
+<Steps>
+  <Step title="Download Cap">
+    Visit [cap.so/download](https://cap.so/download) and click **Download for macOS**.
+    
+    The download will automatically detect if you're on Apple Silicon or Intel and provide the correct version.
+  </Step>
+  
+  <Step title="Install the App">
+    1. Open the downloaded `.dmg` file
+    2. Drag the Cap icon to your Applications folder
+    3. Wait for the copy to complete
+    
+    <img src="https://github.com/CapSoftware/Cap/blob/main/apps/desktop/src-tauri/icons/Square310x310Logo.png" alt="Cap Icon" width="150" />
+  </Step>
+  
+  <Step title="Launch Cap">
+    1. Open your Applications folder
+    2. Double-click Cap to launch
+    3. If you see a security warning, click **Open** to confirm
+    
+    <Note>
+      On first launch, macOS may show a security dialog because Cap is downloaded from the internet. Click "Open" to proceed.
+    </Note>
+  </Step>
+  
+  <Step title="Grant Permissions">
+    Cap will request several permissions on first launch:
+    
+    **Screen Recording Permission** (Required):
+    - macOS will show a permission dialog
+    - Click "Open System Settings"
+    - Enable Screen Recording for Cap
+    - Restart Cap for changes to take effect
+    
+    **Microphone Access** (Optional):
+    - Required if you want to record voice commentary
+    - Click "Allow" when prompted
+    
+    **Camera Access** (Optional):
+    - Required for picture-in-picture webcam recording
+    - Click "Allow" when prompted
+  </Step>
+</Steps>
+
+<Warning>
+  **Developer Note**: If you're running Cap from a terminal (e.g., `pnpm dev:desktop`), you need to grant permissions to the **terminal app** (Terminal.app, iTerm2, etc.), not Cap itself. Go to System Settings → Privacy & Security → Screen Recording and enable your terminal.
+</Warning>
+
+### Windows Installation
+
+<Steps>
+  <Step title="Download Cap">
+    Visit [cap.so/download](https://cap.so/download) and click **Download for Windows**.
+    
+    Choose between:
+    - **NSIS Installer** (`.exe`) - Recommended for most users
+    - **WiX Installer** (`.msi`) - For enterprise deployments
+  </Step>
+  
+  <Step title="Run the Installer">
+    1. Double-click the downloaded installer
+    2. If Windows SmartScreen appears, click "More info" then "Run anyway"
+    3. Follow the installation wizard:
+       - Accept the license agreement
+       - Choose installation location (default is recommended)
+       - Select whether to create desktop shortcut
+    4. Click "Install" and wait for completion
+  </Step>
+  
+  <Step title="Launch Cap">
+    1. Cap will launch automatically after installation
+    2. Or find Cap in your Start menu
+    3. Pin to taskbar for quick access (optional)
+  </Step>
+  
+  <Step title="Grant Permissions">
+    Windows will request permissions on first launch:
+    
+    - **Firewall Access**: Allow Cap through Windows Firewall
+    - **Microphone**: Grant access if you want to record audio
+    - **Camera**: Grant access for webcam recording
+    
+    You can manage these permissions later in Windows Settings → Privacy.
+  </Step>
+</Steps>
+
+## Configuration
+
+### Recording Storage Location
+
+By default, Cap stores recordings locally:
+
+<CodeGroup>
+```bash macOS
+~/Library/Application Support/so.cap.desktop.dev/recordings
+```
+
+```bash Windows
+%APPDATA%/so.cap.desktop.dev/recordings
+```
+</CodeGroup>
+
+To change the storage location:
+
+1. Open Cap Settings
+2. Go to **Storage** section
+3. Click **Change Location**
+4. Select your preferred directory
+5. Existing recordings will not be moved automatically
+
+### Connect to Self-Hosted Instance
+
+If you're running your own Cap server:
+
+<Steps>
+  <Step title="Open Settings">
+    Click the settings icon in Cap's main window.
+  </Step>
+  
+  <Step title="Navigate to Server Settings">
+    Find the **Cap Server URL** setting.
+  </Step>
+  
+  <Step title="Enter Your Server URL">
+    ```bash
+    https://cap.yourdomain.com
+    ```
+    
+    Replace with your actual server URL.
+  </Step>
+  
+  <Step title="Sign In">
+    You'll be prompted to sign in to your self-hosted instance.
+  </Step>
+</Steps>
+
+<Info>
+  Make sure your self-hosted Cap server is properly configured and accessible. See the [Self-Hosting Guide](https://cap.so/docs/self-hosting) for setup instructions.
+</Info>
+
+## Keyboard Shortcuts
+
+Speed up your workflow with these keyboard shortcuts:
+
+| Action | macOS | Windows |
+|--------|-------|----------|
+| Start/Stop Recording | `Cmd+Shift+R` | `Ctrl+Shift+R` |
+| Take Screenshot | `Cmd+Shift+S` | `Ctrl+Shift+S` |
+| Open Settings | `Cmd+,` | `Ctrl+,` |
+| Toggle Camera | `Cmd+Shift+C` | `Ctrl+Shift+C` |
+| Toggle Microphone | `Cmd+Shift+M` | `Ctrl+Shift+M` |
+
+<Tip>
+  You can customize keyboard shortcuts in Cap Settings → Shortcuts.
+</Tip>
+
+## Updating Cap
+
+Cap includes an automatic updater:
+
+1. When a new version is available, you'll see a notification
+2. Click **Download Update**
+3. Cap will download in the background
+4. Click **Install and Restart** when ready
+
+To manually check for updates:
+- **macOS**: Cap → Check for Updates
+- **Windows**: Help → Check for Updates
+
+## Uninstalling Cap
+
+### macOS
+
+1. Open your Applications folder
+2. Drag Cap to the Trash
+3. Empty Trash
+4. Optionally, remove recordings:
+   ```bash
+   rm -rf ~/Library/Application\ Support/so.cap.desktop.dev
+   ```
+
+### Windows
+
+1. Open Settings → Apps → Installed apps
+2. Find Cap in the list
+3. Click the three dots → Uninstall
+4. Follow the uninstallation wizard
+5. Optionally, remove recordings from `%APPDATA%/so.cap.desktop.dev`
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="App won't launch on macOS">
+    **Try these steps:**
+    
+    1. Right-click Cap in Applications → Open (bypasses Gatekeeper)
+    2. Check System Settings → Privacy & Security for any blocks
+    3. If the app is damaged, re-download from [cap.so/download](https://cap.so/download)
+    4. Check Console.app for error messages
+    
+    **Still having issues?**
+    
+    Try removing quarantine attribute:
+    ```bash
+    xattr -d com.apple.quarantine /Applications/Cap.app
+    ```
+  </Accordion>
+  
+  <Accordion title="Screen recording permission not working">
+    **macOS:**
+    1. Go to System Settings → Privacy & Security → Screen Recording
+    2. Remove Cap from the list
+    3. Restart Cap
+    4. Grant permission again when prompted
+    
+    **If running from terminal:**
+    - Enable Screen Recording for your terminal app (Terminal.app, iTerm2, etc.)
+    - Restart the terminal and try again
+  </Accordion>
+  
+  <Accordion title="No system audio captured">
+    **macOS:**
+    - System audio requires additional audio drivers
+    - Cap will prompt you to install necessary components
+    - Restart your Mac after installation
+    
+    **Windows:**
+    - Make sure "System Audio" is enabled in recording settings
+    - Check Windows sound settings for output device
+    - Some apps (like Zoom) may block system audio capture
+  </Accordion>
+  
+  <Accordion title="High CPU usage during recording">
+    Recording is CPU-intensive. To reduce CPU usage:
+    
+    1. Lower the recording quality in Settings
+    2. Close unnecessary applications
+    3. Record at a lower frame rate (30fps instead of 60fps)
+    4. Disable webcam if not needed
+    5. Make sure your device isn't in low-power mode
+  </Accordion>
+  
+  <Accordion title="Recordings are choppy or laggy">
+    **Common causes:**
+    
+    - System under heavy load → Close other apps
+    - Low disk space → Free up storage
+    - Recording quality too high → Lower in settings
+    - Hardware acceleration disabled → Enable in settings
+    
+    **Recommended settings for smooth recording:**
+    - Frame rate: 30 FPS
+    - Quality: Medium
+    - Hardware acceleration: Enabled
+  </Accordion>
+  
+  <Accordion title="App crashes on Windows">
+    1. Make sure Windows is up to date
+    2. Update graphics drivers
+    3. Run Cap as administrator (right-click → Run as administrator)
+    4. Check Windows Event Viewer for error details
+    5. Try reinstalling Cap
+    
+    If crashes persist, report the issue on [GitHub Issues](https://github.com/CapSoftware/Cap/issues)
+  </Accordion>
+</AccordionGroup>
+
+## Getting Help
+
+<CardGroup cols={2}>
+  <Card title="Report a Bug" icon="bug" href="https://github.com/CapSoftware/Cap/issues/new">
+    Found a bug? Report it on GitHub
+  </Card>
+  
+  <Card title="Join Discord" icon="discord" href="https://discord.com/invite/y8gdQ3WRN3">
+    Get help from the community
+  </Card>
+  
+  <Card title="View Source" icon="github" href="https://github.com/CapSoftware/Cap">
+    Cap is open source on GitHub
+  </Card>
+  
+  <Card title="Contributing" icon="code" href="https://github.com/CapSoftware/Cap/blob/main/CONTRIBUTING.md">
+    Learn how to contribute to Cap
+  </Card>
+</CardGroup>
+
+## Technical Details
+
+The Cap desktop app is built with:
+
+- **Framework**: Tauri 2.x (Rust + WebView)
+- **Frontend**: SolidStart (SolidJS)
+- **Recording**: Custom Rust crates for screen/audio/camera capture
+- **Video Processing**: FFmpeg
+- **Bundle Size**: ~100-150MB (lightweight compared to Electron alternatives)
+
+<Info>
+  Cap desktop uses native OS APIs for screen recording, resulting in better performance and lower resource usage than web-based solutions.
+</Info>

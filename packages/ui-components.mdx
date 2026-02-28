@@ -1,0 +1,504 @@
+---
+title: UI Component Packages
+description: React and SolidJS component libraries (@cap/ui, @cap/ui-solid)
+---
+
+## Overview
+
+Cap provides two UI component packages:
+
+- **`@cap/ui`** - React component library for the web app
+- **`@cap/ui-solid`** - SolidJS component library for the desktop app
+
+Both packages are styled with TailwindCSS and designed for consistency across platforms.
+
+## @cap/ui (React)
+
+### Installation
+
+The package is included in the monorepo:
+
+```bash
+pnpm install
+```
+
+### Package Information
+
+**Package Name:** `@cap/ui`
+
+**Location:** `packages/ui/`
+
+**Framework:** React 19
+
+### Exports
+
+```typescript
+import { Button, Card, Dialog } from "@cap/ui";
+import "@cap/ui/style";
+```
+
+Tailwind config:
+
+```javascript:tailwind.config.js
+module.exports = {
+  presets: [require("@cap/ui/tailwind")],
+};
+```
+
+PostCSS config:
+
+```javascript:postcss.config.js
+module.exports = require("@cap/ui/postcss");
+```
+
+### Components
+
+#### Button
+
+Flexible button component with multiple variants.
+
+```tsx:packages/ui/src/components/Button.tsx
+import { Button } from "@cap/ui";
+
+<Button variant="primary" size="md">
+  Click me
+</Button>
+```
+
+**Props:**
+
+<ParamField path="variant" type="enum">
+  Button style variant:
+  - `primary` (default) - Dark button with shadow
+  - `blue` - Blue accent button
+  - `destructive` - Red button for dangerous actions
+  - `outline` - Outlined button
+  - `white` - Light button
+  - `ghost` - Transparent button
+  - `gray` - Gray button
+  - `dark` - Dark gradient button
+  - `darkgradient` - Dark gradient with border
+  - `radialblue` - Radial blue gradient
+  - `transparent` - Fully transparent
+</ParamField>
+
+<ParamField path="size" type="enum">
+  Button size:
+  - `xs` - 32px height
+  - `sm` - 40px height
+  - `md` (default) - 44px height
+  - `lg` - 48px height
+  - `icon` - 36px square
+</ParamField>
+
+<ParamField path="spinner" type="boolean">
+  Show loading spinner
+</ParamField>
+
+<ParamField path="asChild" type="boolean">
+  Render as child component (Radix Slot)
+</ParamField>
+
+#### Card
+
+Container component for grouped content.
+
+```tsx
+import { Card } from "@cap/ui";
+
+<Card>
+  <h2>Card Title</h2>
+  <p>Card content goes here</p>
+</Card>
+```
+
+#### Dialog
+
+Modal dialog component.
+
+```tsx
+import { Dialog } from "@cap/ui";
+
+<Dialog open={isOpen} onOpenChange={setIsOpen}>
+  <Dialog.Content>
+    <Dialog.Title>Dialog Title</Dialog.Title>
+    <Dialog.Description>
+      Dialog description
+    </Dialog.Description>
+  </Dialog.Content>
+</Dialog>
+```
+
+#### Dropdown
+
+Dropdown menu component.
+
+```tsx
+import { Dropdown } from "@cap/ui";
+
+<Dropdown>
+  <Dropdown.Trigger>Open Menu</Dropdown.Trigger>
+  <Dropdown.Content>
+    <Dropdown.Item>Item 1</Dropdown.Item>
+    <Dropdown.Item>Item 2</Dropdown.Item>
+  </Dropdown.Content>
+</Dropdown>
+```
+
+#### Input
+
+Form input components with validation.
+
+```tsx
+import { Input, Form } from "@cap/ui";
+
+<Form.Field>
+  <Form.Label>Email</Form.Label>
+  <Input type="email" placeholder="you@example.com" />
+  <Form.Message>Error message</Form.Message>
+</Form.Field>
+```
+
+#### Select
+
+Select dropdown component.
+
+```tsx
+import { Select } from "@cap/ui";
+
+<Select>
+  <Select.Trigger>Select option</Select.Trigger>
+  <Select.Content>
+    <Select.Item value="1">Option 1</Select.Item>
+    <Select.Item value="2">Option 2</Select.Item>
+  </Select.Content>
+</Select>
+```
+
+#### Switch
+
+Toggle switch component.
+
+```tsx
+import { Switch } from "@cap/ui";
+
+<Switch checked={enabled} onCheckedChange={setEnabled} />
+```
+
+#### Table
+
+Data table component.
+
+```tsx
+import { Table } from "@cap/ui";
+
+<Table>
+  <Table.Header>
+    <Table.Row>
+      <Table.Head>Name</Table.Head>
+      <Table.Head>Email</Table.Head>
+    </Table.Row>
+  </Table.Header>
+  <Table.Body>
+    <Table.Row>
+      <Table.Cell>John Doe</Table.Cell>
+      <Table.Cell>john@example.com</Table.Cell>
+    </Table.Row>
+  </Table.Body>
+</Table>
+```
+
+### Loading Components
+
+#### LoadingSpinner
+
+```tsx
+import { LoadingSpinner } from "@cap/ui";
+
+<LoadingSpinner />
+```
+
+#### LogoSpinner
+
+```tsx
+import { LogoSpinner } from "@cap/ui";
+
+<LogoSpinner />
+```
+
+#### Skeleton Loaders
+
+```tsx
+import { SkeletonPage, SkeletonRows } from "@cap/ui";
+
+<SkeletonPage />
+<SkeletonRows count={5} />
+```
+
+### Icons
+
+```tsx
+import { Logo, LogoBadge } from "@cap/ui";
+
+<Logo className="w-8 h-8" />
+<LogoBadge className="w-12 h-12" />
+```
+
+### UI Framework
+
+Built on Radix UI primitives:
+
+- `@radix-ui/react-dialog`
+- `@radix-ui/react-dropdown-menu`
+- `@radix-ui/react-select`
+- `@radix-ui/react-switch`
+- `@radix-ui/react-popover`
+
+### Styling
+
+Uses `class-variance-authority` for variant management:
+
+```typescript
+import { cva } from "class-variance-authority";
+
+const buttonVariants = cva("base-classes", {
+  variants: {
+    variant: {
+      primary: "primary-classes",
+      secondary: "secondary-classes",
+    },
+  },
+});
+```
+
+---
+
+## @cap/ui-solid (SolidJS)
+
+### Package Information
+
+**Package Name:** `@cap/ui-solid`
+
+**Location:** `packages/ui-solid/`
+
+**Framework:** SolidJS
+
+### Exports
+
+```typescript
+import { Button, ProgressCircle, SwitchTab } from "@cap/ui-solid";
+import "@cap/ui-solid/main.css";
+```
+
+Tailwind config:
+
+```javascript:tailwind.config.js
+module.exports = {
+  presets: [require("@cap/ui-solid/tailwind")],
+};
+```
+
+### Components
+
+#### Button
+
+SolidJS button component.
+
+```tsx:packages/ui-solid/src/Button.tsx
+import { Button } from "@cap/ui-solid";
+
+<Button variant="primary" size="md">
+  Click me
+</Button>
+```
+
+**Props:**
+
+<ParamField path="variant" type="enum">
+  Button style variant:
+  - `primary` - Primary button style
+  - `secondary` - Secondary button style
+  - `outline` - Outlined button
+  - `ghost` - Transparent button
+</ParamField>
+
+<ParamField path="size" type="enum">
+  Button size:
+  - `sm` - Small
+  - `md` - Medium
+  - `lg` - Large
+</ParamField>
+
+#### ProgressCircle
+
+Circular progress indicator.
+
+```tsx
+import { ProgressCircle } from "@cap/ui-solid";
+
+<ProgressCircle value={75} max={100} />
+```
+
+**Props:**
+
+<ParamField path="value" type="number" required>
+  Current progress value
+</ParamField>
+
+<ParamField path="max" type="number" default="100">
+  Maximum value
+</ParamField>
+
+#### SwitchTab
+
+Tabbed switch component.
+
+```tsx
+import { SwitchTab } from "@cap/ui-solid";
+
+<SwitchTab
+  options={["Option 1", "Option 2"]}
+  selected={selected()}
+  onChange={setSelected}
+/>
+```
+
+**Props:**
+
+<ParamField path="options" type="string[]" required>
+  Array of tab options
+</ParamField>
+
+<ParamField path="selected" type="string" required>
+  Currently selected option
+</ParamField>
+
+<ParamField path="onChange" type="(value: string) => void" required>
+  Callback when selection changes
+</ParamField>
+
+### UI Framework
+
+Built on Kobalte UI primitives:
+
+- `@kobalte/core` - SolidJS UI primitives
+- `@kobalte/tailwindcss` - Tailwind plugin
+
+### Styling
+
+Uses `class-variance-authority` for variants:
+
+```typescript
+import { cva } from "cva";
+
+const buttonVariants = cva("base", {
+  variants: {
+    variant: {
+      primary: "primary-styles",
+    },
+  },
+});
+```
+
+---
+
+## Shared Utilities
+
+Both packages depend on `@cap/utils` for shared utilities:
+
+```typescript
+import { classNames, cn } from "@cap/utils";
+
+const classes = classNames("base", condition && "conditional", {
+  active: isActive,
+});
+```
+
+## TailwindCSS Configuration
+
+### Shared Plugins
+
+Both packages use:
+
+- `tailwindcss-animate` - Animation utilities
+- `@tailwindcss/typography` - Typography styles
+- `tailwind-scrollbar` - Custom scrollbars
+- `@kobalte/tailwindcss` - Component styles
+
+### Custom Theme
+
+Both packages extend the Tailwind theme with Cap's design tokens:
+
+```javascript
+colors: {
+  gray: { /* ... */ },
+  blue: { /* ... */ },
+  red: { /* ... */ },
+}
+```
+
+## Development
+
+### Type Checking
+
+Run type checking:
+
+```bash
+pnpm --filter @cap/ui typecheck
+pnpm --filter @cap/ui-solid typecheck
+```
+
+### Storybook
+
+View components in Storybook:
+
+```bash
+pnpm --filter @cap/storybook dev
+```
+
+Stories are defined in `packages/ui-solid/src/*.stories.tsx`.
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Component Composition">
+    Prefer composition over configuration:
+    
+    ```tsx
+    <Dialog>
+      <Dialog.Content>
+        <Dialog.Title>Title</Dialog.Title>
+        <Dialog.Description>Description</Dialog.Description>
+      </Dialog.Content>
+    </Dialog>
+    ```
+  </Accordion>
+  
+  <Accordion title="Styling">
+    Use Tailwind classes directly:
+    
+    ```tsx
+    <Button className="mt-4 w-full">
+      Custom styles
+    </Button>
+    ```
+  </Accordion>
+  
+  <Accordion title="Accessibility">
+    Components include ARIA attributes:
+    - Keyboard navigation
+    - Screen reader support
+    - Focus management
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Database Package" icon="database" href="/packages/database">
+    Learn about the database layer
+  </Card>
+  <Card title="Architecture" icon="diagram-project" href="/development/architecture">
+    Understand the monorepo structure
+  </Card>
+</CardGroup>

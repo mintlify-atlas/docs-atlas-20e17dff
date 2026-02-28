@@ -1,0 +1,336 @@
+---
+title: 'Sharing Videos'
+description: 'Share your Cap videos with links, passwords, and custom domains'
+---
+
+## Getting Your Share Link
+
+After uploading a video, you receive a shareable link:
+
+```text Example Link
+https://cap.so/s/abc123xyz
+```
+
+This link allows anyone to view your video.
+
+### Copying Your Link
+
+<Tabs>
+  <Tab title="Desktop App">
+    After upload:
+    1. Link is **automatically copied** to clipboard
+    2. Or click the **copy icon** next to the link in recordings list
+    3. Green checkmark confirms copy
+  </Tab>
+  
+  <Tab title="Web Dashboard">
+    From your dashboard:
+    1. Find your video
+    2. Click the **share icon**
+    3. Click **Copy Link**
+    4. Link is copied to clipboard
+  </Tab>
+</Tabs>
+
+<Info>
+  Share links are permanent and don't expire. The same link works forever unless you delete the video.
+</Info>
+
+## Share Link Options
+
+### Opening in Browser
+
+The link automatically opens in your browser after upload if:
+
+- **Auto-open links** is enabled (Settings → Cap Pro Settings)
+- You're using Instant Mode
+- Upload completed successfully
+
+<Tip>
+  Disable auto-open in settings if you prefer to share without previewing.
+</Tip>
+
+## Privacy Settings
+
+### Public (Unlisted)
+
+Default setting for all videos:
+
+- **Accessible** with the link
+- **Not searchable** or indexed
+- **Not listed** in public directories
+- **Anyone with link** can view
+
+<Info>
+  "Unlisted" means your video won't appear in search engines or Cap's public gallery, but anyone with the link can watch it.
+</Info>
+
+### Password Protected (Pro)
+
+<Check>Cap Pro Required</Check>
+
+Add password protection:
+
+1. Open video settings in web dashboard
+2. Enable **Password Protection**
+3. Set a password
+4. Save changes
+
+**Viewers must enter the password** before watching.
+
+<Tip>
+  Use password protection for sensitive content, internal company videos, or client presentations.
+</Tip>
+
+### Private (Pro)
+
+<Check>Cap Pro Required</Check>
+
+Restrict access to specific users:
+
+1. Set video to **Private**
+2. Invite specific email addresses
+3. Only invited users can access
+4. Requires sign-in to view
+
+## Custom Domains (Pro)
+
+<Check>Cap Pro Required</Check>
+
+Share videos on your own domain:
+
+### Setting Up Custom Domain
+
+1. Go to [Dashboard Settings](https://cap.so/dashboard/settings)
+2. Navigate to **Custom Domain**
+3. Enter your domain (e.g., `videos.yourcompany.com`)
+4. Add DNS records as instructed:
+   - CNAME record pointing to Cap
+5. Verify domain
+6. Wait for DNS propagation (up to 48 hours)
+
+### Using Custom Domain
+
+Once verified:
+
+```text Custom Domain Link
+https://videos.yourcompany.com/s/abc123xyz
+```
+
+### Switching Between Domains
+
+In the desktop app:
+
+1. Click the **dropdown** next to share link
+2. Select between:
+   - `cap.so` (default)
+   - Your custom domain
+3. Chosen link is copied
+
+<Info>
+  Both links point to the same video. Use whichever domain you prefer for sharing.
+</Info>
+
+## Sharing Methods
+
+### Direct Link Sharing
+
+Simply paste the link anywhere:
+
+- Email messages
+- Slack or Teams channels
+- Social media posts
+- SMS messages
+- Documentation
+
+### Embed Code
+
+Embed videos in websites — see [Embedding Videos](/web/embedding).
+
+### QR Code
+
+Generate QR codes from the web dashboard:
+
+1. Open video settings
+2. Click **QR Code**
+3. Download or share QR image
+
+Perfect for:
+
+- Print materials
+- Presentations
+- Event signage
+- Business cards
+
+## Open Graph Preview
+
+When sharing on social media, Cap automatically generates rich previews:
+
+- **Video thumbnail**: First frame or custom thumbnail
+- **Title**: Video title or filename
+- **Description**: Video description
+- **Duration**: Video length
+
+<Frame>
+  <img src="placeholder for social media preview" alt="Link Preview Example" />
+</Frame>
+
+### Customizing Preview
+
+Edit in web dashboard:
+
+1. Open video settings
+2. Update **Title**
+3. Add **Description**
+4. Upload custom **Thumbnail** (Pro)
+5. Changes apply to all future shares
+
+## Video Page Features
+
+When someone opens your share link, they see:
+
+### Video Player
+
+- Full-screen playback
+- Playback speed controls
+- Quality selection (auto, 1080p, 720p, etc.)
+- Captions/subtitles (if available)
+- Chapters navigation (if available)
+
+### Video Information
+
+- Video title
+- Creator name and avatar
+- Upload date
+- Video duration
+- View count
+
+### Interaction Options
+
+- **Comments**: Leave timestamped comments
+- **Reactions**: Add emoji reactions at specific times
+- **Transcript**: Read AI-generated transcript
+- **Summary**: View AI summary and chapters (Pro)
+- **Download**: Download video file (if enabled by owner)
+
+## Managing Shared Videos
+
+### Updating Shared Videos
+
+You can update a shared video without changing the link:
+
+1. Open recording in desktop editor
+2. Make your changes
+3. Click **Reupload** button
+4. Same link now shows updated video
+
+<Info>
+  Viewers, comments, reactions, and analytics are preserved when reuploading.
+</Info>
+
+### Disabling Shares
+
+To stop sharing a video:
+
+1. Go to web dashboard
+2. Find the video
+3. Click **Settings**
+4. Select **Make Private** or **Delete**
+
+<Warning>
+  Making a video private breaks all existing share links. Viewers will see an access denied message.
+</Warning>
+
+## Share Link Analytics
+
+Track how your video is being viewed:
+
+- Total views
+- View duration
+- Geographic locations
+- Referral sources
+- Engagement metrics
+
+See [Video Analytics](/web/analytics) for details.
+
+## Sharing Best Practices
+
+<Steps>
+  <Step title="Add Context">
+    Include a description when sharing links so viewers know what to expect.
+  </Step>
+  <Step title="Set Permissions">
+    Use password protection for sensitive content.
+  </Step>
+  <Step title="Custom Thumbnails">
+    Upload eye-catching thumbnails to increase clicks (Pro).
+  </Step>
+  <Step title="Enable Comments">
+    Allow viewers to give feedback via comments.
+  </Step>
+  <Step title="Monitor Analytics">
+    Check view counts and engagement to measure impact.
+  </Step>
+</Steps>
+
+## Sharing Limitations
+
+### Free Plan
+
+- Unlimited shares
+- Unlisted videos only
+- Standard domain (`cap.so`)
+- No password protection
+- Public comments and reactions
+
+### Cap Pro
+
+- Everything in Free
+- Password-protected videos
+- Private videos with email invites
+- Custom domain support
+- Custom thumbnails
+- Advanced analytics
+- Priority video processing
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Link doesn't work">
+    - Ensure video upload completed successfully
+    - Check that video wasn't deleted
+    - Verify video isn't set to private (without access)
+    - Try copying link again
+  </Accordion>
+  
+  <Accordion title="Video shows password prompt unexpectedly">
+    - Password protection was enabled after sharing
+    - Provide password to viewers
+    - Or disable password protection in settings
+  </Accordion>
+  
+  <Accordion title="Custom domain not working">
+    - Verify DNS records are correct
+    - Wait up to 48 hours for DNS propagation
+    - Check domain verification status
+    - Contact support if issues persist
+  </Accordion>
+  
+  <Accordion title="Social media preview not showing">
+    - Ensure video has finished processing
+    - Add title and description in video settings
+    - Clear social media cache (varies by platform)
+    - Try sharing again after a few minutes
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Embedding Videos" icon="code" href="/web/embedding">
+    Embed Cap videos on your website
+  </Card>
+  <Card title="Comments" icon="comments" href="/features/comments">
+    Enable and manage video comments
+  </Card>
+</CardGroup>

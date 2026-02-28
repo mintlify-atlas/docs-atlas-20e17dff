@@ -1,0 +1,196 @@
+---
+title: Changelog
+description: Release history and updates for Cap
+---
+
+## Official Changelog
+
+The official changelog for Cap is maintained on GitHub Releases, where you can find detailed information about each version including new features, bug fixes, and breaking changes.
+
+<Card title="View Changelog on GitHub" icon="github" href="https://github.com/CapSoftware/Cap/releases">
+  See all releases, release notes, and download links
+</Card>
+
+## Latest Releases
+
+For the most up-to-date information about Cap releases:
+
+<Steps>
+  <Step title="Check GitHub Releases">
+    Visit the [Releases page](https://github.com/CapSoftware/Cap/releases) to see all versions with detailed changelogs.
+  </Step>
+  
+  <Step title="Desktop App Updates">
+    The Cap Desktop app automatically checks for updates and will notify you when a new version is available.
+  </Step>
+  
+  <Step title="Self-Hosted Updates">
+    For self-hosted instances, pull the latest changes from the repository:
+    ```bash
+    git pull origin main
+    docker compose down
+    docker compose up -d --build
+    ```
+  </Step>
+</Steps>
+
+## Release Channels
+
+### Stable Releases
+
+Stable releases are thoroughly tested and recommended for production use:
+- Desktop apps available at [cap.so/download](https://cap.so/download)
+- Tagged releases on GitHub
+- Docker images tagged with version numbers
+
+### Development Builds
+
+For the latest features and fixes (may be unstable):
+- Build from the `main` branch
+- Docker images tagged as `latest`
+- See [Contributing Guide](https://github.com/CapSoftware/Cap/blob/main/CONTRIBUTING.md) for development setup
+
+## What's New
+
+Stay informed about Cap development:
+
+<CardGroup cols={2}>
+  <Card title="GitHub Releases" icon="tag" href="https://github.com/CapSoftware/Cap/releases">
+    Official release notes and downloads
+  </Card>
+  
+  <Card title="Commit History" icon="code-branch" href="https://github.com/CapSoftware/Cap/commits/main">
+    See all recent changes and commits
+  </Card>
+  
+  <Card title="Pull Requests" icon="code-pull-request" href="https://github.com/CapSoftware/Cap/pulls">
+    Preview upcoming features
+  </Card>
+  
+  <Card title="Discord" icon="discord" href="https://discord.com/invite/y8gdQ3WRN3">
+    Discuss updates with the community
+  </Card>
+</CardGroup>
+
+## Version History
+
+Cap follows semantic versioning (MAJOR.MINOR.PATCH):
+
+- **MAJOR** - Breaking changes that may require migration
+- **MINOR** - New features and improvements (backward compatible)
+- **PATCH** - Bug fixes and minor updates
+
+<Note>
+  The version numbering started when Cap became open source. For the complete history, see the [GitHub Releases](https://github.com/CapSoftware/Cap/releases) page.
+</Note>
+
+## Breaking Changes
+
+Major version updates may include breaking changes. Always check the release notes before updating:
+
+<Warning>
+  Before upgrading a self-hosted instance:
+  1. Read the release notes carefully
+  2. Backup your database and uploaded files
+  3. Test in a staging environment if possible
+  4. Follow any migration instructions provided
+</Warning>
+
+## Deprecation Notices
+
+Features scheduled for removal will be announced in advance:
+- Deprecation warnings in release notes
+- Grace period for migration
+- Migration guides provided when needed
+
+## Update Notifications
+
+### Desktop App
+
+The Cap Desktop app automatically checks for updates:
+- Notification appears when new version is available
+- Option to download and install automatically
+- Release notes displayed in the update dialog
+
+### Self-Hosted
+
+To stay informed about updates for self-hosted instances:
+
+1. **Watch the GitHub repository:**
+   - Click "Watch" → "Custom" → "Releases"
+   - Get notified of new releases via email
+
+2. **Check regularly:**
+   ```bash
+   git fetch origin
+   git log HEAD..origin/main --oneline
+   ```
+
+3. **Join Discord:**
+   - Announcements channel for major updates
+   - Community discussion about changes
+
+## Contributing to Changelog
+
+When contributing to Cap:
+
+1. **Pull Requests:** Clearly describe changes in PR description
+2. **Commit Messages:** Use conventional commit format:
+   - `feat:` for new features
+   - `fix:` for bug fixes
+   - `docs:` for documentation
+   - `chore:` for maintenance tasks
+
+3. **Release Notes:** Maintainers compile PR descriptions into release notes
+
+See the [Contributing Guide](https://github.com/CapSoftware/Cap/blob/main/CONTRIBUTING.md) for details.
+
+## Roadmap
+
+Interested in what's coming next? Check out:
+
+<Card title="Project Roadmap" icon="map" href="/resources/roadmap">
+  See planned features and future direction
+</Card>
+
+## Feedback on Releases
+
+Help improve Cap by sharing feedback on releases:
+
+- Report bugs in new versions on [GitHub Issues](https://github.com/CapSoftware/Cap/issues)
+- Discuss changes on [Discord](https://discord.com/invite/y8gdQ3WRN3)
+- Test beta/RC versions and provide feedback
+- Suggest improvements to the release process
+
+## Download Previous Versions
+
+Need an older version of Cap?
+
+1. Visit [GitHub Releases](https://github.com/CapSoftware/Cap/releases)
+2. Scroll to the desired version
+3. Download from the Assets section
+
+<Note>
+  For self-hosted instances, you can check out any git tag:
+  ```bash
+  git checkout tags/v1.0.0
+  ```
+</Note>
+
+## Stay Updated
+
+Never miss an update:
+
+<CardGroup cols={3}>
+  <Card title="Watch on GitHub" icon="eye" href="https://github.com/CapSoftware/Cap">
+    Get release notifications
+  </Card>
+  
+  <Card title="Follow on Twitter" icon="twitter" href="https://twitter.com/CapDotSo">
+    Release announcements
+  </Card>
+  
+  <Card title="Join Discord" icon="discord" href="https://discord.com/invite/y8gdQ3WRN3">
+    Community updates
+  </Card>
+</CardGroup>

@@ -1,0 +1,328 @@
+---
+title: 'Uploading Videos'
+description: 'Upload and share your Cap recordings to the web'
+---
+
+## Upload Methods
+
+There are multiple ways to upload your videos to Cap Web:
+
+<CardGroup cols={2}>
+  <Card title="Instant Mode" icon="bolt">
+    Automatic upload immediately after recording
+  </Card>
+  <Card title="Studio Mode Export" icon="upload">
+    Upload edited videos from the desktop editor
+  </Card>
+  <Card title="Manual Upload" icon="cloud-arrow-up">
+    Upload from recordings list or web dashboard
+  </Card>
+  <Card title="Reupload" icon="arrows-rotate">
+    Update an existing video with new version
+  </Card>
+</CardGroup>
+
+## Automatic Upload (Instant Mode)
+
+### How It Works
+
+1. Record using **Instant Mode**
+2. Stop the recording
+3. Video is automatically rendered and uploaded
+4. Shareable link is copied to clipboard
+5. Browser opens with your video (if enabled)
+
+<Info>
+  Instant Mode automatically applies optimized export settings for fast sharing.
+</Info>
+
+### Upload Progress
+
+During upload, you'll see:
+
+- **Rendering progress**: Frame count and percentage
+- **Upload progress**: Upload percentage and speed
+- **Completion**: Link copied notification
+
+### Auto-Delete After Upload
+
+Enable in **Settings** → **Recording** → **Delete instant recordings after upload**:
+
+- Saves local storage space
+- Keeps only cloud copy
+- Local file removed after successful upload
+
+<Warning>
+  If upload fails, the local file is preserved regardless of this setting.
+</Warning>
+
+## Manual Upload from Editor
+
+### Uploading from Studio Mode
+
+1. Edit your recording in the desktop editor
+2. Click the **Share** button in the header
+3. Video is rendered with your chosen settings
+4. Upload begins automatically
+5. Link is copied when complete
+
+<Steps>
+  <Step title="Render">
+    Video is rendered with your export settings (resolution, compression, etc.)
+  </Step>
+  <Step title="Upload">
+    Rendered file is uploaded to Cap servers
+  </Step>
+  <Step title="Process">
+    Server processes video for streaming (if needed)
+  </Step>
+  <Step title="Ready">
+    Shareable link is generated and copied
+  </Step>
+</Steps>
+
+### Upload Progress Dialog
+
+The upload dialog shows:
+
+```text Progress Stages
+1. Preparing to render... (0%)
+2. Rendering video (X/Y frames)
+3. Uploading - Z%
+4. Link copied to clipboard!
+```
+
+<Tip>
+  Rendering progress depends on video length and export quality. Higher resolutions take longer.
+</Tip>
+
+## Reuploading Videos
+
+Update an existing shared video:
+
+1. Open the recording in the editor
+2. Make your changes
+3. Click the **reupload icon** (circular arrow)
+4. Confirm reupload
+5. Same shareable link is updated
+
+<Info>
+  Reuploading preserves your original share link, comments, and analytics. Viewers automatically see the new version.
+</Info>
+
+### When to Reupload
+
+- Fix mistakes or typos in video
+- Update content with new information
+- Improve video quality or effects
+- Add or remove sections
+
+## Upload Requirements
+
+### Account Requirements
+
+<Check>Free Plan</Check>
+
+- Upload videos up to 5 minutes
+- Unlimited uploads
+- Public sharing links
+
+<Check>Cap Pro</Check>
+
+- Upload videos of any length
+- Private videos with password protection
+- Custom domains
+- Priority processing
+
+### File Requirements
+
+- **Format**: MP4 (automatically handled)
+- **Codec**: H.264 video, AAC audio
+- **Size**: No hard limit (limited by plan)
+- **Duration**: Up to 5 minutes (Free) or unlimited (Pro)
+
+## Upload from Dashboard
+
+Upload videos through the web dashboard:
+
+1. Go to [cap.so/dashboard](https://cap.so/dashboard)
+2. Click **Upload** or drag and drop a video
+3. Video processes automatically
+4. Set title and privacy settings
+5. Share your link
+
+<Info>
+  Web uploads support MP4, MOV, AVI, MKV, WEBM, WMV, M4V, and FLV formats.
+</Info>
+
+## Processing Status
+
+After upload, videos go through processing:
+
+<Steps>
+  <Step title="Uploading">
+    File is transferred to Cap servers
+  </Step>
+  <Step title="Processing">
+    Video is optimized for streaming
+  </Step>
+  <Step title="Transcoding">
+    Multiple quality versions are created
+  </Step>
+  <Step title="Complete">
+    Video is ready to share and watch
+  </Step>
+</Steps>
+
+### Processing Time
+
+Processing time depends on:
+
+- Video length
+- Resolution and quality
+- Server load
+- Your plan (Pro has priority)
+
+<Tip>
+  Most videos under 10 minutes process in 1-3 minutes.
+</Tip>
+
+## Upload Failures
+
+### Common Issues
+
+<AccordionGroup>
+  <Accordion title="Authentication error">
+    - Ensure you're signed in
+    - Check that your session hasn't expired
+    - Try signing out and back in
+  </Accordion>
+  
+  <Accordion title="Network timeout">
+    - Check your internet connection
+    - Try uploading a smaller file first
+    - Disable VPN if active
+    - Try again later if servers are busy
+  </Accordion>
+  
+  <Accordion title="Plan limit exceeded">
+    - Video exceeds 5-minute limit on Free plan
+    - Upgrade to Cap Pro for unlimited length
+    - Or trim video to under 5 minutes
+  </Accordion>
+  
+  <Accordion title="File format error">
+    - Ensure video is valid MP4
+    - Try exporting again from editor
+    - Check that file isn't corrupted
+  </Accordion>
+</AccordionGroup>
+
+### Retrying Uploads
+
+If upload fails:
+
+1. Check error message for details
+2. Resolve any issues (auth, network, file)
+3. Click **Share** or **Upload** again
+4. Upload will resume from beginning
+
+<Info>
+  Cap does not currently support resume of partial uploads. The upload restarts if interrupted.
+</Info>
+
+## Upload from Recordings List
+
+### Desktop App
+
+1. Open the **Recordings** menu (video icon)
+2. Find your recording
+3. Click the upload icon
+4. Video is rendered and uploaded
+
+### Reupload from Recordings
+
+For already-shared videos:
+
+1. Find the recording in the list
+2. Click the reupload icon
+3. Existing share link is updated
+
+## Upload Progress Tracking
+
+### In Desktop App
+
+- Progress bar shows upload percentage
+- Frame rendering count (for Studio Mode)
+- Estimated time remaining
+- Cancellation not currently supported
+
+### In Web Dashboard
+
+- Upload progress indicator
+- Processing status updates
+- Notification when complete
+
+## After Upload
+
+Once upload completes:
+
+1. **Shareable link** is copied to clipboard
+2. **Browser** opens with video (if enabled in settings)
+3. **Video** appears in your dashboard
+4. **Notifications** sent to you (if enabled)
+
+### Accessing Your Video
+
+Find uploaded videos:
+
+- **Desktop**: Recordings list shows upload status
+- **Web**: Dashboard at [cap.so/dashboard](https://cap.so/dashboard)
+- **Direct link**: Use copied shareable link
+
+## Network Considerations
+
+### Upload Speed
+
+Upload time depends on:
+
+- Your internet upload speed
+- Video file size
+- Server location
+- Network congestion
+
+<Tip>
+  For faster uploads, connect via ethernet instead of Wi-Fi when possible.
+</Tip>
+
+### Bandwidth Usage
+
+Typical upload sizes:
+
+- **1080p, 5 minutes**: ~200-500 MB
+- **1440p, 5 minutes**: ~400-800 MB  
+- **4K, 5 minutes**: ~800-1500 MB
+
+Lower compression quality increases file size.
+
+## Privacy During Upload
+
+- Videos are uploaded over **HTTPS** (encrypted)
+- Only you can access until you share the link
+- Default videos are **unlisted** (link required to view)
+- Set videos to **private** with password (Pro)
+
+<Info>
+  Your videos are private by default. They're only accessible to those with the share link.
+</Info>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Sharing Videos" icon="share-nodes" href="/web/sharing">
+    Learn how to share your uploaded videos
+  </Card>
+  <Card title="Video Analytics" icon="chart-line" href="/web/analytics">
+    Track views and engagement
+  </Card>
+</CardGroup>

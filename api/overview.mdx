@@ -1,0 +1,234 @@
+---
+title: API Overview
+description: Cap REST API for video management and integrations
+---
+
+## Introduction
+
+The Cap API is a RESTful API that allows you to interact with videos, notifications, and user data programmatically. Built with Next.js and Effect.ts for type-safe, composable operations.
+
+## Base URL
+
+### Production
+
+```
+https://cap.so/api
+```
+
+### Self-Hosted
+
+```
+https://your-domain.com/api
+```
+
+You can configure your desktop app to connect to a self-hosted instance via:
+
+**Settings → Cap Server URL**
+
+## API Structure
+
+The Cap API is organized into several main routes:
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/api/authentication">
+    Authenticate requests and manage sessions
+  </Card>
+  <Card title="Videos" icon="video" href="/api/videos">
+    Create, read, update, and delete videos
+  </Card>
+  <Card title="Notifications" icon="bell" href="/api/notifications">
+    Manage user notifications
+  </Card>
+</CardGroup>
+
+## API Contracts
+
+The API uses `@ts-rest` for type-safe API contracts defined in `packages/web-api-contract`:
+
+```typescript:packages/web-api-contract/src/index.ts
+export const contract = c.router({
+  desktop,
+  video: c.router({
+    getTranscribeStatus: { /* ... */ },
+    delete: { /* ... */ },
+    getAnalytics: { /* ... */ },
+  }),
+  notifications: c.router({
+    get: { /* ... */ },
+  }),
+});
+```
+
+## Request Format
+
+All API requests should include:
+
+### Headers
+
+```json
+{
+  "Content-Type": "application/json",
+  "Authorization": "Bearer <token>"
+}
+```
+
+### Authentication
+
+Most endpoints require authentication via:
+
+- **Session cookies** (for web app)
+- **Bearer token** (for desktop app and API integrations)
+
+See [Authentication](/api/authentication) for details.
+
+## Response Format
+
+All API responses follow a consistent structure:
+
+### Success Response
+
+```json
+{
+  "data": {
+    // Response data
+  }
+}
+```
+
+### Error Response
+
+```json
+{
+  "error": "Error message",
+  "code": "ERROR_CODE"
+}
+```
+
+## Status Codes
+
+The API uses standard HTTP status codes:
+
+<ResponseField name="200" type="OK">
+  Request succeeded
+</ResponseField>
+
+<ResponseField name="201" type="Created">
+  Resource created successfully
+</ResponseField>
+
+<ResponseField name="400" type="Bad Request">
+  Invalid request parameters
+</ResponseField>
+
+<ResponseField name="401" type="Unauthorized">
+  Authentication required or invalid
+</ResponseField>
+
+<ResponseField name="403" type="Forbidden">
+  Insufficient permissions
+</ResponseField>
+
+<ResponseField name="404" type="Not Found">
+  Resource not found
+</ResponseField>
+
+<ResponseField name="500" type="Internal Server Error">
+  Server error occurred
+</ResponseField>
+
+## Rate Limiting
+
+The API does not currently enforce rate limiting on self-hosted instances. The production instance at cap.so may implement rate limiting in the future.
+
+## Versioning
+
+The API is currently unversioned. Breaking changes will be communicated through:
+
+- GitHub releases
+- Documentation updates
+- Discord announcements
+
+## API Architecture
+
+### Effect.ts Integration
+
+API routes are built using `@effect/platform` HttpApi:
+
+```typescript
+import { HttpApi, HttpApiBuilder } from "@effect/platform";
+import { Effect } from "effect";
+
+const api = HttpApiBuilder.group(ApiClass, "videos", (endpoints) =>
+  endpoints.endpoint("list", {
+    handler: () =>
+      Effect.gen(function* () {
+        const videos = yield* Videos;
+        return yield* videos.list();
+      }),
+  })
+);
+
+export const { handler } = apiToHandler(ApiLive);
+```
+
+### Type Safety
+
+All endpoints are type-safe using Zod schemas:
+
+```typescript
+import { z } from "zod";
+
+const VideoSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  ownerId: z.string(),
+  createdAt: z.coerce.date(),
+});
+```
+
+## WebSocket Support
+
+The API does not currently support WebSockets. Real-time updates are handled through:
+
+- Polling for desktop app
+- Server-Sent Events for web app (planned)
+
+## SDK and Libraries
+
+### TypeScript Client
+
+The desktop app includes a typed client:
+
+```typescript
+import { contract } from "@cap/web-api-contract";
+import { initClient } from "@ts-rest/core";
+
+const client = initClient(contract, {
+  baseUrl: "https://cap.so/api",
+  baseHeaders: {
+    Authorization: `Bearer ${token}`,
+  },
+});
+
+const { status, body } = await client.video.getAnalytics({
+  query: { videoId: "123" },
+});
+```
+
+## CORS
+
+The API supports CORS for web requests. Allowed origins can be configured via environment variables.
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="Authentication" icon="key" href="/api/authentication">
+    Learn about authentication methods
+  </Card>
+  <Card title="Videos" icon="video" href="/api/videos">
+    Manage videos via API
+  </Card>
+  <Card title="Notifications" icon="bell" href="/api/notifications">
+    Access user notifications
+  </Card>
+</CardGroup>

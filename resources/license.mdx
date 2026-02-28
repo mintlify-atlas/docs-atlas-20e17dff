@@ -1,0 +1,279 @@
+---
+title: License
+description: Licensing information for Cap
+---
+
+## Overview
+
+Cap uses a dual licensing model to balance open source principles with the needs of different components:
+
+<CardGroup cols={2}>
+  <Card title="AGPLv3" icon="scale-balanced">
+    Most of Cap is licensed under AGPLv3
+  </Card>
+  
+  <Card title="MIT" icon="unlock">
+    Camera and screen capture crates use MIT license
+  </Card>
+</CardGroup>
+
+## License Structure
+
+### AGPLv3 (Most of Cap)
+
+The majority of Cap's codebase is licensed under the **GNU Affero General Public License v3.0 (AGPLv3)**.
+
+**This includes:**
+- Desktop app (apps/desktop)
+- Web app (apps/web)
+- Most Rust crates
+- Shared packages (ui, database, utils, etc.)
+- Documentation
+- Scripts and tooling
+
+<Accordion title="What does AGPLv3 mean?">
+  AGPLv3 is a strong copyleft license that:
+  
+  **Allows you to:**
+  - Use Cap for any purpose
+  - Study and modify the source code
+  - Distribute copies of Cap
+  - Distribute modified versions
+  
+  **Requires you to:**
+  - Provide source code when you distribute Cap
+  - License your modifications under AGPLv3
+  - **Provide source code when running Cap as a network service** (this is the key difference from GPL)
+  - Include the license and copyright notices
+  
+  The AGPL "network" clause means if you run a modified version of Cap as a web service, you must make your source code available to users of that service.
+</Accordion>
+
+### MIT (Camera & Screen Capture Crates)
+
+Specific low-level components are licensed under the **MIT License** for maximum compatibility:
+
+**MIT Licensed Components:**
+- All `cap-camera*` family of crates
+- All `scap-*` family of crates
+
+<Accordion title="What does MIT mean?">
+  MIT is a permissive license that:
+  
+  **Allows you to:**
+  - Use the code for any purpose (commercial or non-commercial)
+  - Modify the code
+  - Distribute original or modified copies
+  - Sublicense (use in projects with different licenses)
+  - **Use in proprietary software**
+  
+  **Requires you to:**
+  - Include the MIT license and copyright notice
+  
+  That's it! MIT is very permissive and allows these camera/screen capture components to be used in other projects regardless of their license.
+</Accordion>
+
+### Third-Party Components
+
+Cap includes third-party libraries and components that are licensed under their original licenses:
+
+- Check individual package `package.json` files for dependencies
+- Rust crate dependencies in `Cargo.toml` files
+- All third-party licenses are preserved and respected
+
+## Full License Text
+
+<CardGroup cols={2}>
+  <Card title="AGPLv3 License" icon="file-lines" href="https://github.com/CapSoftware/Cap/blob/main/LICENSE">
+    Read the full AGPLv3 license text
+  </Card>
+  
+  <Card title="MIT License" icon="file-lines" href="https://github.com/CapSoftware/Cap/blob/main/licenses/LICENSE-MIT">
+    Read the full MIT license text
+  </Card>
+</CardGroup>
+
+## Use Cases
+
+### Using Cap
+
+<AccordionGroup>
+  <Accordion title="Can I use Cap for free?">
+    Yes! Cap is free and open source. You can:
+    - Download and use the desktop app
+    - Use the hosted service at cap.so (free tier available)
+    - Self-host Cap on your own infrastructure
+  </Accordion>
+  
+  <Accordion title="Can I use Cap commercially?">
+    Yes! You can use Cap for commercial purposes:
+    - Record videos for your business
+    - Self-host for your company
+    - Use in commercial workflows
+    
+    The AGPLv3 license allows commercial use.
+  </Accordion>
+  
+  <Accordion title="Can I use Cap in my company without sharing code?">
+    If you're just **using** Cap (desktop app or self-hosted), you don't need to share anything.
+    
+    You only need to share source code if you:
+    - Modify Cap's code AND
+    - Distribute the modified version OR
+    - Run it as a network service for others
+  </Accordion>
+</AccordionGroup>
+
+### Modifying Cap
+
+<AccordionGroup>
+  <Accordion title="Can I modify Cap for internal use?">
+    Yes! You can modify Cap for internal company use. As long as you're only using it internally (not as a service for external users), you don't need to share your modifications.
+    
+    However, if you run modified Cap as a web service that external users access, you must provide the source code.
+  </Accordion>
+  
+  <Accordion title="Can I sell a modified version of Cap?">
+    You can sell modified versions of Cap, but:
+    - You must license it under AGPLv3
+    - You must provide source code to your customers
+    - Your customers have the same rights (can redistribute, modify, etc.)
+    
+    This makes selling modified AGPLv3 software challenging but not impossible.
+  </Accordion>
+  
+  <Accordion title="Can I offer Cap as a hosted service?">
+    Yes, but the AGPL network clause applies:
+    - You can run Cap as a service
+    - If you modify the code, you must make your modifications available to users
+    - Include a link to download the source code in your service
+    
+    This ensures users can run their own instance with your improvements.
+  </Accordion>
+</AccordionGroup>
+
+### Using Cap Components
+
+<AccordionGroup>
+  <Accordion title="Can I use the camera crates in my project?">
+    Yes! The `cap-camera*` and `scap-*` crates are MIT licensed, so you can:
+    - Use them in any project (even proprietary)
+    - Modify them as needed
+    - Not required to share your modifications
+    - Just include the MIT license text
+  </Accordion>
+  
+  <Accordion title="Can I use Cap's UI components in my app?">
+    The UI components are part of Cap's AGPLv3 licensed code. If you use them:
+    - Your project must also be licensed under AGPLv3 (or compatible)
+    - You must share your source code if you distribute or run as a service
+    
+    For permissive licensing, use only the MIT licensed camera/screen capture crates.
+  </Accordion>
+</AccordionGroup>
+
+## Why These Licenses?
+
+### AGPLv3 for Core App
+
+The AGPLv3 ensures:
+- **Open Source Forever:** Modifications stay open source
+- **Network Clause:** Even hosted services must share code
+- **Community Benefits:** Improvements benefit everyone
+- **Prevents Lock-in:** No one can create a proprietary fork
+
+### MIT for Media Crates
+
+The camera and screen capture crates use MIT because:
+- **Maximum Compatibility:** Can be used in any project
+- **Adoption:** Encourages use of Cap's capture technology
+- **Ecosystem:** Benefits the broader developer community
+- **Technical Foundation:** Low-level primitives should be accessible
+
+## Compliance
+
+### For Users
+
+If you're just using Cap, you're automatically in compliance. No action needed!
+
+### For Self-Hosters
+
+<Steps>
+  <Step title="Using Unmodified Cap">
+    No additional obligations. You're in compliance!
+  </Step>
+  
+  <Step title="Making Modifications">
+    If you modify Cap and run it as a service:
+    1. Keep the source code available
+    2. Link to your source code from the web interface
+    3. Include the AGPLv3 license
+    4. Document your changes
+  </Step>
+</Steps>
+
+### For Developers
+
+<Checklist>
+  <Check>Include license headers in new files</Check>
+  <Check>Preserve existing copyright notices</Check>
+  <Check>License your contributions under AGPLv3 (for core) or MIT (for camera crates)</Check>
+  <Check>Don't add incompatible dependencies</Check>
+</Checklist>
+
+## Questions?
+
+<AccordionGroup>
+  <Accordion title="I want to use Cap but need different licensing">
+    For commercial licensing inquiries or if AGPLv3 doesn't work for your use case, reach out to the Cap team on [Discord](https://discord.com/invite/y8gdQ3WRN3) or [GitHub](https://github.com/CapSoftware/Cap).
+  </Accordion>
+  
+  <Accordion title="I'm not sure if my use case is compliant">
+    When in doubt:
+    1. Ask on [Discord](https://discord.com/invite/y8gdQ3WRN3)
+    2. Consult with a lawyer familiar with open source licensing
+    3. Consider just sharing your modifications - that's the spirit of open source!
+  </Accordion>
+  
+  <Accordion title="Can I contribute under a different license?">
+    Contributions to Cap must be licensed under:
+    - AGPLv3 for core components
+    - MIT for camera/screen capture crates
+    
+    By contributing, you agree to license your code under the same license as the component you're modifying.
+  </Accordion>
+</AccordionGroup>
+
+## Copyright
+
+```
+Copyright (c) 2023-present Cap Software, Inc.
+```
+
+Contributions are copyright their respective authors but licensed to the project.
+
+## Additional Resources
+
+<CardGroup cols={2}>
+  <Card title="AGPL FAQ" icon="question" href="https://www.gnu.org/licenses/gpl-faq.html#AGPLv3">
+    Official AGPL FAQ from GNU
+  </Card>
+  
+  <Card title="Choose a License" icon="book" href="https://choosealicense.com/licenses/agpl-3.0/">
+    AGPL explained simply
+  </Card>
+  
+  <Card title="MIT License" icon="book" href="https://choosealicense.com/licenses/mit/">
+    MIT license explained
+  </Card>
+  
+  <Card title="GitHub License" icon="github" href="https://github.com/CapSoftware/Cap/blob/main/LICENSE">
+    View license in repository
+  </Card>
+</CardGroup>
+
+---
+
+<Note>
+  This page provides a general overview and should not be considered legal advice. For specific legal questions, consult with a qualified attorney.
+</Note>

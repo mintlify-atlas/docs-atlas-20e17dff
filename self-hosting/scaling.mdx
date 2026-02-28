@@ -1,0 +1,700 @@
+---
+title: "Scaling Considerations"
+description: "Scale your Cap deployment for production workloads and high traffic"
+---
+
+The default Cap deployment is designed for small teams and development. This guide covers scaling strategies for production workloads.
+
+## When to Scale
+
+Consider scaling when you experience:
+
+<CardGroup cols={2}>
+  <Card title="High Traffic" icon="chart-line">
+    More than 1,000 daily active users or 10,000 video views/day
+  </Card>
+  <Card title="Slow Response" icon="clock">
+    API response times above 500ms or page load times above 2s
+  </Card>
+  <Card title="Resource Limits" icon="server">
+    CPU usage consistently above 70% or memory above 80%
+  </Card>
+  <Card title="Storage Growth" icon="database">
+    Running out of disk space or high storage costs
+  </Card>
+</CardGroup>
+
+## Scaling Strategies
+
+### Vertical Scaling (Scale Up)
+
+Increase resources for existing servers.
+
+**Pros**:
+- Simple to implement
+- No architecture changes
+- Minimal configuration
+
+**Cons**:
+- Limited by hardware
+- Single point of failure
+- Expensive at scale
+
+**When to use**: First step before horizontal scaling, or for low-medium traffic (under 10,000 users).
+
+### Horizontal Scaling (Scale Out)
+
+Add more server instances.
+
+**Pros**:
+- Near-infinite scalability
+- High availability
+- Cost-effective at scale
+
+**Cons**:
+- Complex setup
+- Requires load balancer
+- Stateful services need special handling
+
+**When to use**: High traffic deployments, production systems requiring high availability.
+
+## Component-Specific Scaling
+
+### Scale Cap Web (Horizontal)
+
+Cap Web is stateless and easy to scale horizontally.
+
+#### Setup with Load Balancer
+
+<Steps>
+  <Step title="Deploy Multiple Cap Web Instances">
+    Run multiple containers:
+
+    ```yaml docker-compose.yml
+    services:
+      cap-web-1:
+        image: ghcr.io/capsoftware/cap-web:latest
+        environment:
+          # ... same environment variables
+
+      cap-web-2:
+        image: ghcr.io/capsoftware/cap-web:latest
+        environment:
+          # ... same environment variables
+
+      cap-web-3:
+        image: ghcr.io/capsoftware/cap-web:latest
+        environment:
+          # ... same environment variables
+    ```
+
+    Or use Docker Swarm/Kubernetes for automatic scaling.
+  </Step>
+
+  <Step title="Configure Load Balancer">
+    **Nginx**:
+
+    ```nginx /etc/nginx/sites-available/cap
+    upstream cap_backend {
+        least_conn;  # Load balancing method
+        server 127.0.0.1:3001;
+        server 127.0.0.1:3002;
+        server 127.0.0.1:3003;
+    }
+
+    server {
+        listen 443 ssl http2;
+        server_name cap.yourdomain.com;
+
+        location / {
+            proxy_pass http://cap_backend;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+    }
+    ```
+
+    **Traefik** (Docker):
+
+    ```yaml
+    services:
+      cap-web:
+        deploy:
+          replicas: 3
+        labels:
+          - "traefik.enable=true"
+          - "traefik.http.routers.cap.rule=Host(`cap.yourdomain.com`)"
+          - "traefik.http.services.cap.loadbalancer.server.port=3000"
+    ```
+  </Step>
+
+  <Step title="Session Handling">
+    Cap uses database sessions (NextAuth), so no sticky sessions needed.
+
+    All instances share the same MySQL database for session storage.
+  </Step>
+</Steps>
+
+#### Auto-Scaling
+
+**Kubernetes** (recommended for large deployments):
+
+```yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: cap-web-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: cap-web
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+```
+
+**Docker Swarm**:
+
+```bash
+docker service scale cap_cap-web=5
+```
+
+### Scale MySQL Database
+
+MySQL is the main bottleneck at scale.
+
+#### Read Replicas
+
+For read-heavy workloads:
+
+<Steps>
+  <Step title="Set Up Primary-Replica">
+    Configure MySQL replication:
+
+    **Primary** (master):
+    ```sql
+    CREATE USER 'repl'@'%' IDENTIFIED BY 'password';
+    GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%';
+    FLUSH PRIVILEGES;
+    ```
+
+    **Replica** (slave):
+    ```sql
+    CHANGE MASTER TO
+      MASTER_HOST='mysql-primary',
+      MASTER_USER='repl',
+      MASTER_PASSWORD='password',
+      MASTER_LOG_FILE='mysql-bin.000001',
+      MASTER_LOG_POS=0;
+    START SLAVE;
+    ```
+  </Step>
+
+  <Step title="Update Application">
+    Use primary for writes, replicas for reads:
+
+    ```typescript
+    // Requires code modification
+    const readDb = drizzle(replicaConnection);
+    const writeDb = drizzle(primaryConnection);
+
+    // Reads go to replica
+    await readDb.select().from(videos);
+
+    // Writes go to primary
+    await writeDb.insert(videos).values({...});
+    ```
+  </Step>
+</Steps>
+
+#### Managed Database Services
+
+For easier scaling, use managed databases:
+
+**PlanetScale** (recommended):
+- Automatic scaling
+- Built-in read replicas
+- Serverless pricing
+- Easy branching for development
+
+```bash .env
+DATABASE_URL=mysql://user:pass@aws.connect.psdb.cloud/cap?ssl={"rejectUnauthorized":true}
+```
+
+**AWS RDS**:
+- Automated backups
+- Read replicas
+- Multi-AZ for high availability
+
+**Google Cloud SQL**:
+- Automatic failover
+- Point-in-time recovery
+- Read replicas
+
+#### Connection Pooling
+
+Reduce database connections:
+
+```typescript
+// apps/web/lib/db.ts
+import { drizzle } from 'drizzle-orm/mysql2';
+import mysql from 'mysql2/promise';
+
+const pool = mysql.createPool({
+  uri: process.env.DATABASE_URL,
+  connectionLimit: 10,  // Limit connections per instance
+});
+
+export const db = drizzle(pool);
+```
+
+### Scale Media Server
+
+FFmpeg processing is CPU-intensive.
+
+#### Queue-Based Processing
+
+Replace synchronous processing with a queue:
+
+<Steps>
+  <Step title="Add Message Queue">
+    Use Redis, RabbitMQ, or AWS SQS:
+
+    ```yaml docker-compose.yml
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - "6379:6379"
+    ```
+  </Step>
+
+  <Step title="Worker Pool">
+    Run multiple media server workers:
+
+    ```yaml
+    services:
+      media-worker-1:
+        image: cap-media-server
+        environment:
+          REDIS_URL: redis://redis:6379
+
+      media-worker-2:
+        image: cap-media-server
+        environment:
+          REDIS_URL: redis://redis:6379
+
+      media-worker-3:
+        image: cap-media-server
+        environment:
+          REDIS_URL: redis://redis:6379
+    ```
+  </Step>
+
+  <Step title="Job Queue">
+    Cap Web pushes jobs to queue, workers process in parallel:
+
+    ```typescript
+    // Requires code modification
+    import { Queue } from 'bullmq';
+
+    const videoQueue = new Queue('video-processing', {
+      connection: { host: 'redis', port: 6379 }
+    });
+
+    // Add job
+    await videoQueue.add('transcode', {
+      videoId: 'abc123',
+      s3Key: 'videos/raw/abc123.mp4'
+    });
+    ```
+  </Step>
+</Steps>
+
+#### External Processing Services
+
+Offload to specialized services:
+
+- **AWS Elemental MediaConvert**: Professional transcoding
+- **Mux**: Video API with built-in processing
+- **Cloudinary**: Video transformation and delivery
+
+### Scale S3 Storage
+
+#### Use External S3 Provider
+
+Switch from MinIO to cloud providers:
+
+**AWS S3**:
+- Unlimited storage
+- 11 nines durability
+- Global CDN (CloudFront)
+- Lifecycle policies
+
+**Cloudflare R2**:
+- Zero egress fees
+- Automatic global distribution
+- S3-compatible API
+
+**Backblaze B2**:
+- Lowest cost ($6/TB vs $23/TB S3)
+- S3-compatible
+- Free egress with Cloudflare
+
+See [S3 Storage](/self-hosting/s3-storage) for setup.
+
+#### CDN for S3
+
+Serve videos through CDN for faster global delivery:
+
+**CloudFront** (with AWS S3):
+```bash .env
+CAP_AWS_BUCKET_URL=https://d111111abcdef8.cloudfront.net
+```
+
+**Cloudflare** (with any S3):
+- Add S3 domain as CNAME in Cloudflare
+- Enable caching rules
+- Videos served from Cloudflare edge
+
+## Infrastructure Patterns
+
+### Small Deployment (< 1,000 users)
+
+```
+┌───────────────────────┐
+│   Single Server       │
+│                       │
+│  ┌────────────────┐  │
+│  │ Caddy (Reverse) │  │
+│  └───────┬────────┘  │
+│         │             │
+│  ┌──────┴───────┐  │
+│  │   Cap Web     │  │
+│  └──────┬───────┘  │
+│         │             │
+│  ┌──────┴───────┐  │
+│  │    MySQL     │  │
+│  │    MinIO     │  │
+│  │ Media Server│  │
+│  └───────────────┘  │
+└───────────────────────┘
+```
+
+**Resources**: 4GB RAM, 2 CPU, 50GB SSD  
+**Cost**: $20-40/month (VPS)
+
+### Medium Deployment (1,000 - 10,000 users)
+
+```
+┌────────────────────────────────────────┐
+│            Load Balancer             │
+└───────────┬───────────────────────────┘
+            │
+    ┌───────┴───────┐
+    │               │
+┌───┴───┐     ┌───┴───┐
+│ Cap Web│     │ Cap Web│
+│   x2   │     │   x2   │
+└───┬───┘     └───┬───┘
+    │               │
+    └───────┬───────┘
+            │
+    ┌───────┴───────┐
+    │               │
+┌───┴───┐     ┌───┴───┐
+│ MySQL │     │  S3   │
+│Primary│     │ (AWS) │
+└───────┘     └───────┘
+    │
+┌───┴───┐
+│ MySQL │
+│Replica│
+└───────┘
+```
+
+**Resources**: 2x 4GB servers, managed database, cloud S3  
+**Cost**: $100-200/month
+
+### Large Deployment (10,000+ users)
+
+```
+┌────────────────────────────────────────┐
+│        CDN (CloudFlare / CloudFront)      │
+└───────────┬────────────────────────────┘
+            │
+┌───────────┴───────────┐
+│   Load Balancer (ALB)  │
+└───────────┬───────────┘
+            │
+┌───────────┴───────────┐
+│ Cap Web (Auto-Scale) │
+│    3-10 instances     │
+└───────────┬───────────┘
+            │
+    ┌───────┴───────┐
+    │               │
+┌───┴───┐     ┌───┴───┐
+│RDS    │     │ Redis │
+│MySQL  │     │ Queue │
+│Multi-AZ     │       │
+└───────┘     └───┬───┘
+                  │
+          ┌───────┴───────┐
+          │ Media Workers │
+          │    (Pool)     │
+          └───────────────┘
+```
+
+**Resources**: Kubernetes cluster, managed database, CDN, queue  
+**Cost**: $500-2000+/month
+
+## Performance Optimization
+
+### Database Optimization
+
+#### Indexing
+
+Ensure proper indexes:
+
+```sql
+-- Video lookups by user
+CREATE INDEX idx_videos_user_id ON videos(user_id);
+
+-- Share code lookups
+CREATE INDEX idx_share_links_code ON share_links(short_code);
+
+-- Comments by video
+CREATE INDEX idx_comments_video_id ON comments(video_id);
+```
+
+#### Query Optimization
+
+```typescript
+// Bad: N+1 query
+const videos = await db.select().from(videos);
+for (const video of videos) {
+  const user = await db.select().from(users).where(eq(users.id, video.userId));
+}
+
+// Good: Join
+const videos = await db
+  .select()
+  .from(videos)
+  .leftJoin(users, eq(videos.userId, users.id));
+```
+
+### Caching
+
+Add Redis for caching:
+
+```typescript
+import { Redis } from 'ioredis';
+
+const redis = new Redis(process.env.REDIS_URL);
+
+// Cache video metadata
+const video = await redis.get(`video:${id}`);
+if (!video) {
+  const dbVideo = await db.select().from(videos).where(eq(videos.id, id));
+  await redis.setex(`video:${id}`, 3600, JSON.stringify(dbVideo));
+}
+```
+
+### Edge Caching
+
+Cache static content at CDN:
+
+```nginx
+# Nginx caching
+proxy_cache_path /var/cache/nginx levels=1:2 keys_zone=cap_cache:10m max_size=1g;
+
+location /api/videos {
+    proxy_cache cap_cache;
+    proxy_cache_valid 200 5m;
+    proxy_cache_key $uri$is_args$args;
+}
+```
+
+## Monitoring & Observability
+
+### Application Monitoring
+
+**Sentry** for error tracking:
+
+```bash .env
+SENTRY_DSN=https://xxxxx@sentry.io/xxxxx
+```
+
+**Prometheus** for metrics:
+
+```yaml docker-compose.yml
+services:
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3001:3000"
+```
+
+### Database Monitoring
+
+**Slow query log**:
+
+```sql
+SET GLOBAL slow_query_log = 'ON';
+SET GLOBAL long_query_time = 1;
+```
+
+**Connection monitoring**:
+
+```sql
+SHOW PROCESSLIST;
+SHOW STATUS LIKE 'Threads_connected';
+```
+
+## Backup Strategies
+
+### Database Backups
+
+**Automated daily backups**:
+
+```bash
+#!/bin/bash
+# backup.sh
+
+DATE=$(date +%Y%m%d)
+BACKUP_DIR="/backups"
+
+docker exec cap-mysql mysqldump -u cap -p"$MYSQL_PASSWORD" cap > "$BACKUP_DIR/cap-$DATE.sql"
+
+# Compress
+gzip "$BACKUP_DIR/cap-$DATE.sql"
+
+# Upload to S3
+aws s3 cp "$BACKUP_DIR/cap-$DATE.sql.gz" s3://cap-backups/
+
+# Keep last 30 days
+find $BACKUP_DIR -name "cap-*.sql.gz" -mtime +30 -delete
+```
+
+Schedule with cron:
+
+```bash
+0 2 * * * /path/to/backup.sh
+```
+
+### S3 Backups
+
+**Enable versioning** (AWS S3):
+
+```bash
+aws s3api put-bucket-versioning \
+  --bucket cap-videos \
+  --versioning-configuration Status=Enabled
+```
+
+**Lifecycle policies** for cost savings:
+
+```json
+{
+  "Rules": [{
+    "Id": "Archive old versions",
+    "Status": "Enabled",
+    "NoncurrentVersionTransitions": [{
+      "NoncurrentDays": 30,
+      "StorageClass": "GLACIER"
+    }]
+  }]
+}
+```
+
+## Cost Optimization
+
+### Storage Costs
+
+<Tabs>
+  <Tab title="Cloudflare R2">
+    **Best for**: High egress
+
+    - Storage: $0.015/GB/month
+    - Egress: $0 (unlimited)
+    - Best at: 1TB+ egress/month
+  </Tab>
+
+  <Tab title="Backblaze B2">
+    **Best for**: Archive
+
+    - Storage: $0.005/GB/month
+    - Egress: First 3x storage free
+    - Best at: Large archives
+  </Tab>
+
+  <Tab title="AWS S3">
+    **Best for**: Enterprise
+
+    - Storage: $0.023/GB/month
+    - Egress: $0.09/GB
+    - Best at: Complex workflows
+  </Tab>
+</Tabs>
+
+### Compute Costs
+
+- Use spot instances (AWS, GCP) for media workers (70% savings)
+- Auto-scaling reduces idle costs
+- Serverless for low-traffic deployments
+
+## Disaster Recovery
+
+### Multi-Region Deployment
+
+For high availability:
+
+1. **Primary region**: Full deployment
+2. **Secondary region**: Standby deployment
+3. **DNS failover**: Route53 health checks
+4. **Database replication**: Cross-region read replica
+
+### Recovery Point Objective (RPO)
+
+- **Database**: Daily backups, 24-hour RPO
+- **S3**: Versioning enabled, near-zero RPO
+- **Application**: Stateless, no data loss
+
+### Recovery Time Objective (RTO)
+
+- **Single server**: 15-30 minutes (restore from backup)
+- **Multi-instance**: Near-zero (automatic failover)
+- **Multi-region**: < 5 minutes (DNS failover)
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Architecture" icon="diagram-project" href="/self-hosting/architecture">
+    Understand system architecture
+  </Card>
+  <Card title="Monitoring" icon="chart-mixed" href="/self-hosting/troubleshooting">
+    Set up monitoring and alerts
+  </Card>
+  <Card title="S3 Storage" icon="database" href="/self-hosting/s3-storage">
+    Optimize storage configuration
+  </Card>
+  <Card title="Environment Variables" icon="gear" href="/self-hosting/environment-variables">
+    Configure for scale
+  </Card>
+</CardGroup>

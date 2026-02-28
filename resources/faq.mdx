@@ -1,0 +1,170 @@
+---
+title: Frequently Asked Questions
+description: Common questions about Cap and their answers
+---
+
+## General
+
+<Accordion title="What is Cap?">
+  Cap is an open source alternative to Loom. It's a privacy-focused video messaging tool that allows you to record, edit, and share videos in seconds. You can record your screen, camera, or both simultaneously.
+</Accordion>
+
+<Accordion title="How is Cap different from Loom?">
+  Cap is completely open source and can be self-hosted, giving you full control over your data and privacy. Unlike Loom, you can run Cap on your own infrastructure, customize it to your needs, and avoid vendor lock-in. The desktop app is built with Tauri and Rust for better performance and smaller file sizes.
+</Accordion>
+
+<Accordion title="What platforms does Cap support?">
+  Cap Desktop is available for macOS and Windows. The web app works on any modern browser. Linux support is planned for the future.
+</Accordion>
+
+<Accordion title="Is Cap free?">
+  Yes, Cap is free and open source. The hosted version at cap.so offers free and pro tiers, but you can also self-host Cap completely free using the AGPLv3 licensed code.
+</Accordion>
+
+## Self-Hosting
+
+<Accordion title="How do I self-host Cap?">
+  The quickest way is to use Docker Compose:
+  ```bash
+  git clone https://github.com/CapSoftware/Cap.git && cd Cap && docker compose up -d
+  ```
+  Cap will be running at `http://localhost:3000`. Check the [self-hosting guide](/self-hosting/quick-start) for detailed instructions.
+</Accordion>
+
+<Accordion title="What are the system requirements for self-hosting?">
+  You'll need:
+  - Docker and Docker Compose (recommended) OR Node.js 20+ and pnpm
+  - MySQL database
+  - S3-compatible storage (MinIO works great for local setups)
+  - At least 2GB RAM and 10GB disk space for basic usage
+  
+  See the [self-hosting overview](/self-hosting/overview) for more details.
+</Accordion>
+
+<Accordion title="Can I use Cap Desktop with my self-hosted instance?">
+  Yes! In Cap Desktop, go to Settings → Cap Server URL and enter your self-hosted instance URL. The desktop app will connect to your instance instead of cap.so.
+</Accordion>
+
+<Accordion title="How do I configure email for login links?">
+  By default, login links appear in the logs (`docker compose logs cap-web`). For production, configure an SMTP provider in your `.env` file. See the [email configuration guide](/self-hosting/email-setup) for supported providers.
+</Accordion>
+
+<Accordion title="Can I use MariaDB instead of MySQL?">
+  The codebase is designed specifically for MySQL. MariaDB or other compatible databases might partially work but are not officially supported and may cause issues.
+</Accordion>
+
+<Accordion title="How do I enable AI features in self-hosted Cap?">
+  AI features require additional configuration including API keys for AI services. See the [environment variables guide](/self-hosting/environment-variables) for setup instructions.
+</Accordion>
+
+## Recording
+
+<Accordion title="How do I record my screen with Cap?">
+  Open the Cap Desktop app, select your recording area (full screen, window, or custom), choose your audio and camera options, then click the record button. A countdown will start and recording begins.
+</Accordion>
+
+<Accordion title="Where are my recordings stored?">
+  On macOS: `~/Library/Application Support/so.cap.desktop.dev/recordings`
+  
+  On Windows: `%programfiles%/so.cap.desktop.dev/recordings`
+  
+  Videos are stored locally first, then uploaded to your configured Cap server (cap.so or your self-hosted instance).
+</Accordion>
+
+<Accordion title="Can I record my camera without screen recording?">
+  Yes, you can configure Cap to record camera-only, screen-only, or both simultaneously through the recording options.
+</Accordion>
+
+<Accordion title="What video formats does Cap support?">
+  Cap records in modern video formats optimized for web playback. The exact format depends on your platform and settings, but all recordings are compatible with standard video players.
+</Accordion>
+
+<Accordion title="Why do I need to grant permissions on macOS?">
+  When running Cap Desktop from a terminal on macOS (during development), you need to grant screen recording and microphone permissions to the terminal app, not the Cap app itself. For the installed app, permissions are granted to Cap directly.
+</Accordion>
+
+## Development
+
+<Accordion title="How do I set up the development environment?">
+  Prerequisites:
+  - Node.js 20+
+  - Rust 1.88.0+
+  - pnpm 8.10.5+
+  - Docker (OrbStack recommended)
+  
+  Then run:
+  ```bash
+  pnpm install
+  pnpm cap-setup
+  pnpm env-setup
+  pnpm dev
+  ```
+  
+  See the [Contributing Guide](https://github.com/CapSoftware/Cap/blob/main/CONTRIBUTING.md) for details.
+</Accordion>
+
+<Accordion title="What technologies does Cap use?">
+  Cap is built with:
+  - Desktop app: Tauri (Rust) with SolidStart frontend
+  - Web app: Next.js with React
+  - Database: Drizzle ORM with MySQL
+  - Styling: TailwindCSS
+  - Monorepo: Turborepo
+  - Media processing: FFmpeg and custom Rust crates
+</Accordion>
+
+<Accordion title="How do I run only the web app or desktop app?">
+  For web only: `pnpm dev:web`
+  
+  For desktop only: `pnpm dev:desktop`
+  
+  To run both: `pnpm dev`
+</Accordion>
+
+<Accordion title="What's the project structure?">
+  Cap uses a Turborepo monorepo:
+  - `apps/desktop` - Tauri desktop app
+  - `apps/web` - Next.js web application
+  - `packages/*` - Shared libraries (ui, database, utils, etc.)
+  - `crates/*` - Rust media processing crates
+</Accordion>
+
+<Accordion title="How do I contribute to Cap?">
+  You can contribute by:
+  - Reporting bugs on [GitHub Issues](https://github.com/CapSoftware/cap/issues/new)
+  - Suggesting features on [Discord](https://discord.com/invite/y8gdQ3WRN3)
+  - Submitting pull requests
+  
+  Check out our [bounty program](https://console.algora.io/org/CapSoftware/bounties) for paid issues.
+</Accordion>
+
+## Troubleshooting
+
+<Accordion title="Login links aren't working">
+  If you're self-hosting without email configured, check the logs for login links:
+  ```bash
+  docker compose logs cap-web
+  ```
+  The magic link will appear in the console output.
+</Accordion>
+
+<Accordion title="Database migration errors">
+  Make sure to run migrations in order:
+  ```bash
+  pnpm db:generate
+  pnpm db:push
+  ```
+  Never edit auto-generated files in the database package.
+</Accordion>
+
+<Accordion title="Docker containers won't start">
+  Try cleaning and restarting:
+  ```bash
+  pnpm docker:clean
+  pnpm docker:up
+  ```
+</Accordion>
+
+<Accordion title="I need more help">
+  Check our [Troubleshooting Guide](/resources/troubleshooting) or reach out on [Discord](https://discord.com/invite/y8gdQ3WRN3) for community support.
+</Accordion>

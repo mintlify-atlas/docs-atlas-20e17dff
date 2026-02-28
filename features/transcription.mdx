@@ -1,0 +1,391 @@
+---
+title: 'AI Transcription'
+description: 'Automatic speech-to-text transcription for your Cap videos'
+---
+
+## Transcription Overview
+
+Cap automatically generates transcripts for videos with audio using advanced AI speech recognition. Transcripts are:
+
+- **Accurate**: High-quality speech-to-text conversion
+- **Timestamped**: Each line includes precise timing
+- **Editable**: Fix errors or adjust wording
+- **Translatable**: Available in multiple languages
+- **Downloadable**: Export as VTT subtitle files
+
+<Info>
+  Transcription is automatically triggered when you upload a video with audio. No manual action required!
+</Info>
+
+## How Transcription Works
+
+<Steps>
+  <Step title="Upload">
+    Upload your video to Cap (desktop or web)
+  </Step>
+  <Step title="Audio Detection">
+    Cap detects if video contains an audio track
+  </Step>
+  <Step title="Processing">
+    AI processes the audio and generates timestamped transcript
+  </Step>
+  <Step title="Complete">
+    Transcript appears in the Transcript tab (typically 1-5 minutes)
+  </Step>
+</Steps>
+
+## Accessing Transcripts
+
+### Video Share Page
+
+1. Open your shared video link
+2. Click the **Transcript** tab in the sidebar
+3. View the full timestamped transcript
+
+<Frame>
+  <img src="placeholder for transcript tab" alt="Transcript Tab" />
+</Frame>
+
+### Transcript Features
+
+- **Timestamps**: Each line shows MM:SS timestamp
+- **Clickable**: Click any line to jump to that moment
+- **Search**: Find specific words or phrases
+- **Copy**: Copy entire transcript or selections
+- **Download**: Export as VTT file
+
+## Transcript Status
+
+Transcripts go through several states:
+
+<Tabs>
+  <Tab title="Processing">
+    Transcription is being generated. This usually takes 1-5 minutes depending on video length.
+    
+    **What you see:** Loading spinner with "Transcription in progress..."
+  </Tab>
+  
+  <Tab title="Complete">
+    Transcript is ready to view, edit, and use.
+    
+    **What you see:** Full timestamped transcript
+  </Tab>
+  
+  <Tab title="No Audio">
+    Video does not contain an audio track.
+    
+    **What you see:** "No audio track detected" message
+  </Tab>
+  
+  <Tab title="Skipped">
+    Transcription was disabled for this video.
+    
+    **What you see:** "Transcription disabled" message
+  </Tab>
+  
+  <Tab title="Error">
+    Transcription failed due to an error.
+    
+    **What you see:** Retry button (if you're the owner)
+  </Tab>
+</Tabs>
+
+## Editing Transcripts
+
+<Info>
+  Only video owners can edit transcripts.
+</Info>
+
+### Making Edits
+
+1. Click the **edit icon** next to any transcript line
+2. Modify the text in the text area
+3. Click **Save** to apply changes
+4. Or click **Cancel** to discard
+
+<Tip>
+  Edit transcripts to:
+  - Fix misheard words
+  - Correct spelling of names or technical terms
+  - Adjust punctuation
+  - Remove filler words
+</Tip>
+
+### What You Can Edit
+
+- **Text content**: The actual transcript text
+- **Punctuation**: Add or remove punctuation
+
+### What You Cannot Edit
+
+- **Timestamps**: Timing is locked to the audio
+- **Add/remove lines**: Cannot split or merge transcript segments
+
+<Warning>
+  Edits are permanent. There's no undo, so be careful when making changes.
+</Warning>
+
+## Copying Transcripts
+
+### Copy All
+
+1. Click the **Copy Transcript** button
+2. Entire transcript is copied with timestamps
+3. Format: `[MM:SS] Text content`
+
+### Copy Selection
+
+Select specific lines:
+
+1. Click and drag to select text
+2. Right-click and choose **Copy**
+3. Or use Ctrl/Cmd+C
+
+## Downloading Transcripts
+
+Export transcripts as VTT files:
+
+1. Click the **Download** button
+2. File saves as `transcript-VIDEO_ID.vtt`
+3. Use with video players or editors
+
+### VTT Format
+
+Transcripts are exported in WebVTT format:
+
+```vtt Example VTT
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:03.500
+Welcome to this Cap tutorial.
+
+2
+00:00:03.500 --> 00:00:07.200
+Today we'll learn how to use transcription.
+```
+
+<Info>
+  VTT files are compatible with most video players, editors, and subtitle tools.
+</Info>
+
+## Captions from Transcripts
+
+Transcripts are automatically used as video captions:
+
+- **Subtitles**: Appear on video player
+- **Searchable**: Captions are indexed for search
+- **Accessible**: Improve accessibility for viewers
+- **Multilingual**: Translate to other languages (Pro)
+
+<Check>
+  Captions are automatically enabled on the video player. Viewers can toggle them on/off.
+</Check>
+
+## Translation Features (Pro)
+
+<Check>Cap Pro Required</Check>
+
+Translate transcripts to multiple languages:
+
+### Available Languages
+
+Cap supports translation to:
+
+- Spanish (Español)
+- French (Français)
+- German (Deutsch)
+- Italian (Italiano)
+- Portuguese (Português)
+- Dutch (Nederlands)
+- Russian (Русский)
+- Japanese (日本語)
+- Chinese (中文)
+- Korean (한국어)
+- And more...
+
+### Using Translations
+
+1. Open the Transcript tab
+2. Click the **language dropdown** (globe icon)
+3. Select your target language
+4. Wait for translation (cached for future use)
+5. View translated transcript
+
+<Info>
+  Translations are cached, so switching back to previously translated languages is instant.
+</Info>
+
+### Downloading Translated Transcripts
+
+1. Select a language
+2. Wait for translation to complete
+3. Click **Download**
+4. File saves as `transcript-VIDEO_ID.LANGUAGE_CODE.vtt`
+
+## Transcript Search
+
+Find specific content within transcripts:
+
+1. Use the search bar in the Transcript tab
+2. Type your search query
+3. Matching lines are highlighted
+4. Click highlighted lines to jump to that moment
+
+<Tip>
+  Use search to quickly find specific topics, keywords, or quotes in long videos.
+</Tip>
+
+## Transcription Quality
+
+### Factors Affecting Quality
+
+**High accuracy when:**
+
+- Clear audio with minimal background noise
+- Single speaker or distinct voices
+- Standard accents and speaking pace
+- Good microphone quality
+
+**Lower accuracy when:**
+
+- Heavy background noise or music
+- Multiple overlapping speakers
+- Strong accents or fast speech
+- Poor audio quality
+
+<Tip>
+  For best transcription results:
+  - Use a quality microphone
+  - Record in a quiet environment
+  - Speak clearly and at a moderate pace
+  - Minimize background noise
+</Tip>
+
+## Retry Transcription
+
+If transcription fails or times out:
+
+1. Open the video share page
+2. Go to Transcript tab
+3. Click **Retry Transcription** button
+4. Wait for processing to complete
+
+<Warning>
+  Retry replaces any existing transcript. Edits will be lost.
+</Warning>
+
+## Using Transcripts for SEO
+
+Transcripts improve video discoverability:
+
+- **Searchable Content**: Search engines can index transcript text
+- **Keywords**: Transcripts contain natural keywords
+- **Accessibility**: Better for users and search engines
+- **Rich Snippets**: May appear in search results
+
+## Transcripts in the Editor
+
+Use transcripts when editing videos:
+
+1. Open recording in Cap Desktop editor
+2. Navigate to **Captions** tab
+3. View and style captions based on transcript
+4. Choose caption presets or customize:
+   - Font family and size
+   - Background and opacity
+   - Position on screen
+5. Export video with burned-in captions
+
+<Info>
+  Captions in the editor sync automatically with your transcript edits.
+</Info>
+
+## Transcript Privacy
+
+Transcript visibility matches video privacy:
+
+- **Unlisted videos**: Transcript visible to anyone with link
+- **Password protected**: Transcript requires password
+- **Private videos**: Transcript only visible to invited users
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Transcription stuck at 'Processing'">
+    - Wait 5-10 minutes (processing time varies by video length)
+    - Refresh the page
+    - If stuck after 10 minutes, click Retry Transcription
+  </Accordion>
+  
+  <Accordion title="Transcript is inaccurate">
+    - Edit incorrect lines manually
+    - Check audio quality of original video
+    - Retry transcription if severely inaccurate
+  </Accordion>
+  
+  <Accordion title="'No audio detected' message">
+    - Video may not have an audio track
+    - Audio codec might be unsupported
+    - Check original recording has sound
+    - Try re-exporting with standard audio codec
+  </Accordion>
+  
+  <Accordion title="Cannot edit transcript">
+    - Ensure you're the video owner
+    - Sign in to your Cap account
+    - Translation mode is active (can only edit original)
+  </Accordion>
+  
+  <Accordion title="Translation failed">
+    - Check your internet connection
+    - Try a different language
+    - Refresh and try again
+    - Contact support if issue persists
+  </Accordion>
+</AccordionGroup>
+
+## Transcript Limitations
+
+### What Transcription Handles
+
+- English and many other languages
+- Clear speech and dialogue
+- Standard accents and dialects
+- Voice-overs and narration
+
+### What It Doesn't Handle Well
+
+- Heavy background music drowning out speech
+- Extreme accents or non-standard speech
+- Whispering or mumbling
+- Non-speech audio (instrumentals, sound effects)
+
+## API Access
+
+Developers can access transcripts via API:
+
+```javascript Fetch Transcript
+fetch('https://cap.so/api/videos/VIDEO_ID/transcript', {
+  headers: {
+    'Authorization': 'Bearer YOUR_API_KEY'
+  }
+})
+.then(res => res.json())
+.then(data => console.log(data));
+```
+
+<Note>
+  API access available for Cap Pro users. Contact support for API documentation.
+</Note>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="AI Summaries" icon="sparkles" href="/features/ai-summaries">
+    Generate AI summaries from transcripts
+  </Card>
+  <Card title="Comments" icon="comments" href="/features/comments">
+    Enable timestamped comments
+  </Card>
+</CardGroup>

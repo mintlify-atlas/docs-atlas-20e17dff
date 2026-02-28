@@ -1,0 +1,305 @@
+---
+title: Video Endpoints
+description: Manage videos through the Cap API
+---
+
+## Overview
+
+The Video API allows you to manage videos, check transcription status, retrieve analytics, and delete videos.
+
+## Endpoints
+
+### Get Transcribe Status
+
+Check the transcription status of a video.
+
+```
+GET /api/video/transcribe/status
+```
+
+<ParamField query="videoId" type="string" required>
+  The unique identifier of the video
+</ParamField>
+
+#### Response
+
+<ResponseField name="transcriptionStatus" type="string | null">
+  Current transcription status. Can be:
+  - `"PROCESSING"` - Transcription in progress
+  - `"COMPLETE"` - Transcription finished
+  - `"ERROR"` - Transcription failed
+  - `null` - Transcription not started
+</ResponseField>
+
+#### Example Request
+
+```bash
+curl -X GET "https://cap.so/api/video/transcribe/status?videoId=abc123" \
+  -H "Authorization: Bearer <token>"
+```
+
+#### Example Response
+
+```json
+{
+  "transcriptionStatus": "COMPLETE"
+}
+```
+
+---
+
+### Delete Video
+
+Permanently delete a video.
+
+```
+DELETE /api/video/delete
+```
+
+<ParamField query="videoId" type="string" required>
+  The unique identifier of the video to delete
+</ParamField>
+
+#### Response
+
+<ResponseField name="success" type="unknown">
+  Empty response on success
+</ResponseField>
+
+#### Example Request
+
+```bash
+curl -X DELETE "https://cap.so/api/video/delete?videoId=abc123" \
+  -H "Authorization: Bearer <token>"
+```
+
+#### Example Response
+
+```json
+{}
+```
+
+<Warning>
+  This action is permanent and cannot be undone. The video and all associated data will be deleted.
+</Warning>
+
+---
+
+### Get Analytics
+
+Retrieve view count and analytics for a video.
+
+```
+GET /api/video/analytics
+```
+
+<ParamField query="videoId" type="string" required>
+  The unique identifier of the video
+</ParamField>
+
+#### Response
+
+<ResponseField name="count" type="number">
+  Total number of views for the video
+</ResponseField>
+
+#### Example Request
+
+```bash
+curl -X GET "https://cap.so/api/video/analytics?videoId=abc123" \
+  -H "Authorization: Bearer <token>"
+```
+
+#### Example Response
+
+```json
+{
+  "count": 147
+}
+```
+
+---
+
+## Desktop Video Endpoint
+
+The desktop app has an additional video deletion endpoint.
+
+### Delete Video (Desktop)
+
+```
+DELETE /api/desktop/video/delete
+```
+
+<ParamField query="videoId" type="string" required>
+  The unique identifier of the video to delete
+</ParamField>
+
+<ParamField header="authorization" type="string" required>
+  Bearer token for authentication
+</ParamField>
+
+#### Example Request
+
+```bash
+curl -X DELETE "https://cap.so/api/desktop/video/delete?videoId=abc123" \
+  -H "Authorization: Bearer <token>"
+```
+
+---
+
+## Video Schema
+
+Videos in the database follow this structure:
+
+### Video Object
+
+```typescript:packages/database/schema.ts
+interface Video {
+  id: string;
+  ownerId: string;
+  name: string;
+  createdAt: Date;
+  totalComments: number;
+  totalReactions: number;
+  public: boolean;
+  source: "local" | "s3";
+  transcriptionStatus: "PROCESSING" | "COMPLETE" | "ERROR" | null;
+  metadata: VideoMetadata;
+}
+```
+
+### Video Metadata
+
+```typescript:packages/database/types/metadata.ts
+interface VideoMetadata {
+  customCreatedAt?: string;
+  sourceName?: string;
+  aiTitle?: string;
+  summary?: string;
+  chapters?: { title: string; start: number }[];
+  aiGenerationStatus?: "QUEUED" | "PROCESSING" | "COMPLETE" | "ERROR" | "SKIPPED";
+  enhancedAudioStatus?: "PROCESSING" | "COMPLETE" | "ERROR" | "SKIPPED";
+}
+```
+
+<Expandable title="Field Descriptions">
+  <ResponseField name="customCreatedAt" type="string">
+    Custom created date that overrides the actual createdAt timestamp
+  </ResponseField>
+  
+  <ResponseField name="sourceName" type="string">
+    Title of the captured monitor or window
+  </ResponseField>
+  
+  <ResponseField name="aiTitle" type="string">
+    AI-generated title for the video
+  </ResponseField>
+  
+  <ResponseField name="summary" type="string">
+    AI-generated summary of the content
+  </ResponseField>
+  
+  <ResponseField name="chapters" type="array">
+    Chapter markers generated from the transcript
+    
+    <Expandable title="Chapter Object">
+      <ResponseField name="title" type="string">
+        Chapter title
+      </ResponseField>
+      <ResponseField name="start" type="number">
+        Start time in seconds
+      </ResponseField>
+    </Expandable>
+  </ResponseField>
+  
+  <ResponseField name="aiGenerationStatus" type="enum">
+    Status of AI processing: `QUEUED`, `PROCESSING`, `COMPLETE`, `ERROR`, or `SKIPPED`
+  </ResponseField>
+  
+  <ResponseField name="enhancedAudioStatus" type="enum">
+    Status of audio enhancement: `PROCESSING`, `COMPLETE`, `ERROR`, or `SKIPPED`
+  </ResponseField>
+</Expandable>
+
+## Error Responses
+
+### 401 Unauthorized
+
+```json
+{
+  "error": "Unauthorized"
+}
+```
+
+Authentication required or token invalid.
+
+### 404 Not Found
+
+```json
+{
+  "error": "Video not found"
+}
+```
+
+The requested video does not exist or you don't have permission to access it.
+
+### 500 Internal Server Error
+
+```json
+{
+  "error": "Internal server error",
+  "message": "Failed to process request"
+}
+```
+
+An unexpected error occurred on the server.
+
+## Implementation Details
+
+The video endpoints are defined in `packages/web-api-contract/src/index.ts:63-90`:
+
+```typescript:packages/web-api-contract/src/index.ts
+video: c.router({
+  getTranscribeStatus: {
+    method: "GET",
+    path: "/video/transcribe/status",
+    query: z.object({ videoId: z.string() }),
+    responses: {
+      200: z.object({
+        transcriptionStatus: z
+          .custom<"PROCESSING" | "COMPLETE" | "ERROR">()
+          .nullable(),
+      }),
+    },
+  },
+  delete: {
+    method: "DELETE",
+    path: "/video/delete",
+    query: z.object({ videoId: z.string() }),
+    responses: { 200: z.unknown() },
+  },
+  getAnalytics: {
+    method: "GET",
+    path: "/video/analytics",
+    query: z.object({ videoId: z.string() }),
+    responses: {
+      200: z.object({ count: z.number() }),
+    },
+  },
+})
+```
+
+## Rate Limiting
+
+Currently, there are no rate limits on video endpoints for self-hosted instances. The production instance may implement rate limiting in the future.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/api/authentication">
+    Learn about authentication methods
+  </Card>
+  <Card title="Notifications" icon="bell" href="/api/notifications">
+    Manage user notifications
+  </Card>
+</CardGroup>

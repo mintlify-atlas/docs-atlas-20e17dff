@@ -1,0 +1,242 @@
+---
+title: Record Command
+description: Record your screen, windows, and audio with the Cap CLI
+---
+
+## Overview
+
+The `record` command starts a screen recording or lists available capture targets.
+
+## Usage
+
+```bash
+cap record [OPTIONS]
+cap record <SUBCOMMAND>
+```
+
+## Subcommands
+
+### screens
+
+List all available screens for capturing.
+
+```bash
+cap record screens
+```
+
+**Output example:**
+```
+screen 0:
+  id: 1
+  name: Built-in Retina Display
+  fps: 60
+
+screen 1:
+  id: 2
+  name: Dell U2720Q
+  fps: 60
+```
+
+### windows
+
+List all available windows for capturing.
+
+```bash
+cap record windows
+```
+
+**Output example:**
+```
+window 0:
+  id: 12345
+  name: Google Chrome
+  fps: 60
+
+window 1:
+  id: 12346
+  name: Visual Studio Code
+  fps: 60
+```
+
+### cameras
+
+List all available cameras.
+
+```bash
+cap record cameras
+```
+
+**Output example:**
+```json
+[
+  {
+    "display_name": "FaceTime HD Camera"
+  },
+  {
+    "display_name": "Logitech C920"
+  }
+]
+```
+
+## Options
+
+### Target Selection (Required)
+
+You must specify either `--screen` or `--window`:
+
+<ParamField path="--screen" type="DisplayId" required>
+  ID of the screen to capture. Use `cap record screens` to list available screens.
+</ParamField>
+
+<ParamField path="--window" type="WindowId" required>
+  ID of the window to capture. Use `cap record windows` to list available windows.
+</ParamField>
+
+<Note>
+  `--screen` and `--window` are mutually exclusive. You can only specify one.
+</Note>
+
+### Audio Options
+
+<ParamField path="--camera" type="string">
+  Index or name of the camera to record. Use `cap record cameras` to list available cameras.
+</ParamField>
+
+<ParamField path="--mic" type="u32">
+  ID of the microphone to record from.
+</ParamField>
+
+<ParamField path="--system-audio" type="boolean" default="false">
+  Capture system audio during recording.
+</ParamField>
+
+### Recording Settings
+
+<ParamField path="--path" type="path">
+  Path to save the `.cap` project file. Defaults to `<uuid>.cap` in the current directory.
+</ParamField>
+
+<ParamField path="--fps" type="u32" default="60">
+  Maximum frames per second to record (max 60).
+</ParamField>
+
+## Examples
+
+### Record a Specific Screen
+
+```bash
+cap record --screen 1 --path my-recording.cap
+```
+
+### Record a Window with System Audio
+
+```bash
+cap record --window 12345 --system-audio
+```
+
+### Record with Camera and Microphone
+
+```bash
+cap record --screen 1 --camera "FaceTime HD Camera" --mic 0
+```
+
+### Record at 30 FPS
+
+```bash
+cap record --screen 1 --fps 30 --path recording.cap
+```
+
+### Full Recording Setup
+
+```bash
+cap record \
+  --screen 1 \
+  --camera "Logitech C920" \
+  --mic 0 \
+  --system-audio \
+  --fps 60 \
+  --path presentation.cap
+```
+
+## Stopping a Recording
+
+Once recording starts, you'll see:
+
+```
+Recording starting, press Enter to stop
+```
+
+Press **Enter** to stop the recording. The `.cap` project file will be saved to the specified path.
+
+## Output Format
+
+Recordings are saved as `.cap` project files containing:
+
+- **Video frames:** Raw screen capture data
+- **Audio tracks:** Microphone and system audio (if enabled)
+- **Camera feed:** Video from the camera (if enabled)
+- **Metadata:** Recording settings and timestamps
+- **Cursor data:** Cursor position and appearance
+
+## Platform-Specific Notes
+
+### macOS
+
+- Uses native Screen Capture API (ScreenCaptureKit)
+- Requires screen recording permission
+- Camera requires camera permission
+- System audio capture requires audio permissions
+
+### Windows
+
+- Uses Windows.Graphics.Capture API
+- Requires appropriate permissions
+- System audio capture may require additional setup
+
+## Technical Implementation
+
+The record command is implemented in `apps/cli/src/record.rs:8-95`:
+
+```rust:apps/cli/src/record.rs
+pub struct RecordStart {
+    target: RecordTargets,
+    camera: Option<String>,
+    mic: Option<u32>,
+    system_audio: bool,
+    path: Option<PathBuf>,
+    fps: Option<u32>,
+}
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="No screens or windows listed">
+    Ensure Cap has the necessary permissions:
+    - macOS: System Preferences → Security & Privacy → Privacy → Screen Recording
+    - Windows: Check app permissions in Settings
+  </Accordion>
+  
+  <Accordion title="Recording file not created">
+    - Verify you have write permissions in the target directory
+    - Ensure sufficient disk space
+    - Check that the path is valid
+  </Accordion>
+  
+  <Accordion title="Camera not detected">
+    - Verify camera permissions
+    - Ensure camera is not in use by another application
+    - Try listing cameras with `cap record cameras`
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Export Command" icon="file-export" href="/cli/export">
+    Learn how to export your .cap recordings to video
+  </Card>
+  <Card title="CLI Overview" icon="terminal" href="/cli/overview">
+    Back to CLI overview
+  </Card>
+</CardGroup>

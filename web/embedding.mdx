@@ -1,0 +1,485 @@
+---
+title: 'Embedding Videos'
+description: 'Embed Cap videos on your website or blog'
+---
+
+## Embed Overview
+
+Cap provides embeddable video players that you can add to any website. Embedded videos include:
+
+- Responsive video player
+- Playback controls
+- Captions and chapters (if available)
+- Comments and reactions (optional)
+- Cap branding (removable with Pro)
+
+## Getting Embed Code
+
+### From Web Dashboard
+
+1. Go to your [Cap Dashboard](https://cap.so/dashboard)
+2. Find your video
+3. Click the **Share** icon
+4. Select **Embed** tab
+5. Copy the embed code
+
+### Embed URL Format
+
+```html
+https://cap.so/embed/VIDEO_ID
+```
+
+Replace `VIDEO_ID` with your video's ID from the share link.
+
+## Basic Embed Code
+
+### HTML Embed
+
+```html Standard Embed
+<iframe
+  src="https://cap.so/embed/abc123xyz"
+  width="960"
+  height="540"
+  frameborder="0"
+  allow="autoplay; fullscreen; picture-in-picture"
+  allowfullscreen
+></iframe>
+```
+
+### Responsive Embed
+
+Make the embed responsive using CSS:
+
+```html Responsive Embed
+<div style="position: relative; padding-bottom: 56.25%; height: 0;">
+  <iframe
+    src="https://cap.so/embed/abc123xyz"
+    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
+    frameborder="0"
+    allow="autoplay; fullscreen; picture-in-picture"
+    allowfullscreen
+  ></iframe>
+</div>
+```
+
+<Info>
+  The `56.25%` padding-bottom creates a 16:9 aspect ratio. Adjust for different aspect ratios.
+</Info>
+
+## Embed Options
+
+Customize the embed with URL parameters:
+
+### Autoplay
+
+```html
+<iframe src="https://cap.so/embed/abc123xyz?autoplay=true"></iframe>
+```
+
+<Warning>
+  Most browsers block autoplay with sound. Muted autoplay is more reliable.
+</Warning>
+
+### Hide Controls
+
+```html
+<iframe src="https://cap.so/embed/abc123xyz?controls=false"></iframe>
+```
+
+### Start Time
+
+Start video at specific time (in seconds):
+
+```html
+<iframe src="https://cap.so/embed/abc123xyz?t=30"></iframe>
+```
+
+### Loop Video
+
+```html
+<iframe src="https://cap.so/embed/abc123xyz?loop=true"></iframe>
+```
+
+### Muted Autoplay
+
+```html
+<iframe src="https://cap.so/embed/abc123xyz?autoplay=true&muted=true"></iframe>
+```
+
+### Custom Color
+
+Change player accent color:
+
+```html
+<iframe src="https://cap.so/embed/abc123xyz?color=FF5733"></iframe>
+```
+
+## Combining Parameters
+
+Chain multiple parameters with `&`:
+
+```html Multiple Parameters
+<iframe 
+  src="https://cap.so/embed/abc123xyz?autoplay=true&muted=true&controls=true&color=007AFF"
+></iframe>
+```
+
+## Embed Sizes
+
+### Common Sizes
+
+<Tabs>
+  <Tab title="Standard (16:9)">
+    ```html
+    width="960" height="540"  (Full HD)
+    width="1280" height="720" (HD)
+    width="640" height="360"  (SD)
+    ```
+  </Tab>
+  
+  <Tab title="Vertical (9:16)">
+    ```html
+    width="360" height="640"  (Mobile)
+    width="540" height="960"  (HD Mobile)
+    ```
+  </Tab>
+  
+  <Tab title="Square (1:1)">
+    ```html
+    width="600" height="600"  (Square)
+    width="800" height="800"  (Large Square)
+    ```
+  </Tab>
+</Tabs>
+
+## Responsive Design
+
+### CSS Container Method
+
+```html Full Example
+<style>
+  .cap-embed-container {
+    position: relative;
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+  
+  .cap-embed-container::before {
+    content: '';
+    display: block;
+    padding-top: 56.25%; /* 16:9 aspect ratio */
+  }
+  
+  .cap-embed-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+</style>
+
+<div class="cap-embed-container">
+  <iframe
+    src="https://cap.so/embed/abc123xyz"
+    allow="autoplay; fullscreen; picture-in-picture"
+    allowfullscreen
+  ></iframe>
+</div>
+```
+
+## Framework-Specific Embedding
+
+### React
+
+```jsx React Component
+import React from 'react';
+
+const CapEmbed = ({ videoId, autoplay = false }) => {
+  const src = `https://cap.so/embed/${videoId}${autoplay ? '?autoplay=true&muted=true' : ''}`;
+  
+  return (
+    <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0 }}>
+      <iframe
+        src={src}
+        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+        frameBorder="0"
+        allow="autoplay; fullscreen; picture-in-picture"
+        allowFullScreen
+      />
+    </div>
+  );
+};
+
+export default CapEmbed;
+```
+
+### Vue
+
+```vue Vue Component
+<template>
+  <div class="cap-embed">
+    <iframe
+      :src="embedUrl"
+      frameborder="0"
+      allow="autoplay; fullscreen; picture-in-picture"
+      allowfullscreen
+    />
+  </div>
+</template>
+
+<script>
+export default {
+  props: {
+    videoId: {
+      type: String,
+      required: true
+    },
+    autoplay: {
+      type: Boolean,
+      default: false
+    }
+  },
+  computed: {
+    embedUrl() {
+      let url = `https://cap.so/embed/${this.videoId}`;
+      if (this.autoplay) url += '?autoplay=true&muted=true';
+      return url;
+    }
+  }
+};
+</script>
+
+<style scoped>
+.cap-embed {
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+}
+
+.cap-embed iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+</style>
+```
+
+### WordPress
+
+```html WordPress Shortcode
+[iframe src="https://cap.so/embed/abc123xyz" width="960" height="540"]
+```
+
+Or use the Gutenberg block:
+
+1. Add **Custom HTML** block
+2. Paste embed code
+3. Preview and publish
+
+## Embed Features
+
+### Included Features
+
+All embeds include:
+
+- Video playback
+- Play/pause controls
+- Volume control
+- Fullscreen button
+- Progress bar
+- Quality selector
+- Speed controls
+- Keyboard shortcuts
+
+### Optional Features
+
+Depending on video settings:
+
+- **Captions**: AI-generated subtitles
+- **Chapters**: Navigable chapter markers
+- **Comments**: Timestamped discussion (Pro)
+- **Reactions**: Emoji reactions (Pro)
+- **Transcript**: Searchable transcript sidebar (Pro)
+
+## Embed Privacy
+
+### Visibility Settings
+
+Embedded videos respect privacy settings:
+
+- **Unlisted**: Embedded video is accessible
+- **Password Protected**: Viewers must enter password
+- **Private**: Embed shows access denied message
+
+<Info>
+  Password-protected embeds display a password input before showing the video.
+</Info>
+
+### Analytics
+
+Embed views are tracked:
+
+- View counts include embedded views
+- Referrer information shows embedding domains
+- Watch time and engagement are recorded
+
+See [Video Analytics](/web/analytics) for details.
+
+## Removing Cap Branding (Pro)
+
+<Check>Cap Pro Required</Check>
+
+Remove "Powered by Cap" branding from embeds:
+
+1. Go to video settings
+2. Enable **Hide Cap branding**
+3. Embed will show clean player without logo
+
+## Performance Optimization
+
+### Lazy Loading
+
+Improve page performance by lazy loading embeds:
+
+```html Lazy Loading
+<iframe
+  src="https://cap.so/embed/abc123xyz"
+  loading="lazy"
+  width="960"
+  height="540"
+></iframe>
+```
+
+### Thumbnail Placeholder
+
+Show thumbnail until user clicks to play:
+
+```html Click-to-Play
+<div class="cap-placeholder" onclick="this.innerHTML='<iframe src=\'https://cap.so/embed/abc123xyz?autoplay=true\' width=\'960\' height=\'540\'></iframe>'">
+  <img src="https://cap.so/api/video/abc123xyz/thumbnail.jpg" alt="Video Thumbnail">
+  <button>Play Video</button>
+</div>
+```
+
+## Security Considerations
+
+### Content Security Policy
+
+Allow Cap embeds in your CSP:
+
+```text CSP Header
+Content-Security-Policy: 
+  frame-src https://cap.so https://*.cap.so;
+```
+
+### HTTPS Required
+
+Always use HTTPS for embed URLs:
+
+<Check>✓ `https://cap.so/embed/...`</Check>
+<Warning>✗ `http://cap.so/embed/...`</Warning>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Embed not displaying">
+    - Check that video ID is correct
+    - Ensure iframe is not blocked by CSP
+    - Verify video is not set to private
+    - Check browser console for errors
+  </Accordion>
+  
+  <Accordion title="Autoplay not working">
+    - Add `&muted=true` parameter
+    - Autoplay with sound is blocked by most browsers
+    - Ensure `allow="autoplay"` attribute is set
+  </Accordion>
+  
+  <Accordion title="Embed not responsive">
+    - Use the responsive embed code provided above
+    - Check that parent container has width set
+    - Verify CSS is loading correctly
+  </Accordion>
+  
+  <Accordion title="Video quality is poor">
+    - Increase iframe dimensions
+    - Check source video resolution
+    - Player automatically adapts to network speed
+  </Accordion>
+</AccordionGroup>
+
+## Example Implementations
+
+### Blog Post
+
+```html Blog Article
+<article>
+  <h1>How to Use Cap</h1>
+  <p>Watch this tutorial to get started:</p>
+  
+  <div style="position: relative; padding-bottom: 56.25%; height: 0; margin: 2rem 0;">
+    <iframe
+      src="https://cap.so/embed/tutorial-123"
+      style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
+      frameborder="0"
+      allow="autoplay; fullscreen; picture-in-picture"
+      allowfullscreen
+    ></iframe>
+  </div>
+  
+  <p>Continue reading...</p>
+</article>
+```
+
+### Landing Page Hero
+
+```html Hero Section
+<section class="hero">
+  <div class="container">
+    <h1>See Cap in Action</h1>
+    <div class="video-wrapper">
+      <iframe
+        src="https://cap.so/embed/demo-456?autoplay=true&muted=true&loop=true"
+        width="1280"
+        height="720"
+        frameborder="0"
+        allow="autoplay; fullscreen; picture-in-picture"
+        allowfullscreen
+      ></iframe>
+    </div>
+  </div>
+</section>
+```
+
+### Documentation
+
+```html Docs Page
+<div class="docs-video">
+  <h3>Video Tutorial</h3>
+  <iframe
+    src="https://cap.so/embed/docs-789"
+    width="800"
+    height="450"
+    frameborder="0"
+    allow="fullscreen; picture-in-picture"
+    allowfullscreen
+  ></iframe>
+  <p class="caption">Watch the full walkthrough above.</p>
+</div>
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Sharing Videos" icon="share-nodes" href="/web/sharing">
+    Learn more about sharing options
+  </Card>
+  <Card title="Analytics" icon="chart-line" href="/web/analytics">
+    Track embed performance and views
+  </Card>
+</CardGroup>

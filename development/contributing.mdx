@@ -1,0 +1,239 @@
+---
+title: Contributing Guidelines
+description: How to contribute to Cap development
+---
+
+## Ways to Contribute
+
+There are many ways to contribute to Cap:
+
+- **Report a bug:** [Open an issue](https://github.com/CapSoftware/cap/issues/new)
+- **Suggest a feature:** Join our [Discord](https://discord.com/invite/y8gdQ3WRN3)
+- **Submit a pull request:** Fix bugs or add features
+- **Improve documentation:** Help make the docs better
+
+## Development Requirements
+
+Before contributing, make sure you have:
+
+- Node.js 20+
+- Rust 1.88.0+
+- pnpm 8.10.5+ (recommended: 10.5.2)
+- Docker (OrbStack recommended)
+
+See the [Development Setup](/development/setup) guide for detailed instructions.
+
+## Code Style
+
+### TypeScript/JavaScript
+
+- **Indentation:** 2 spaces
+- **Formatter:** Biome (via `pnpm format`)
+- **Linter:** Biome (via `pnpm lint`)
+- **File naming:** kebab-case (`user-menu.tsx`)
+- **Components:** PascalCase
+
+### Rust
+
+- **Formatter:** `cargo fmt`
+- **Linter:** Clippy with workspace lints
+- **Module naming:** snake_case
+- **Crate naming:** kebab-case
+
+### Critical Rule: No Comments
+
+<Warning>
+  **Never add comments** (`//`, `/* */`, `///`, `//!`, `#`) to code. Code must be self-explanatory through naming, types, and structure. This applies to all languages.
+</Warning>
+
+## Rust Workspace Lints
+
+All Rust code must respect these workspace-level lints:
+
+### Compiler Lints
+
+- `unused_must_use = "deny"` - Always handle `Result`/`Option` or types marked `#[must_use]`
+
+### Clippy Lints (All Denied)
+
+<Accordion title="View All Clippy Rules">
+  - `dbg_macro` - Never use `dbg!()`; use proper logging
+  - `let_underscore_future` - Never write `let _ = async_fn()`
+  - `unchecked_duration_subtraction` - Use `saturating_sub` for Duration
+  - `collapsible_if` - Merge nested if statements
+  - `clone_on_copy` - Don't call `.clone()` on `Copy` types
+  - `redundant_closure` - Use function references directly
+  - `ptr_arg` - Accept `&[T]` or `&str` instead of `&Vec<T>` or `&String`
+  - `len_zero` - Use `.is_empty()` instead of `.len() == 0`
+  - `let_unit_value` - Don't assign `()` to a variable
+  - `unnecessary_lazy_evaluations` - Use `.unwrap_or(val)` for cheap values
+  - `needless_range_loop` - Use `for item in &collection`
+  - `manual_clamp` - Use `.clamp(min, max)`
+</Accordion>
+
+## Testing
+
+### TypeScript/JavaScript
+
+- **Framework:** Vitest
+- **Location:** `*.test.ts(x)` files near sources
+- **Run:** `pnpm test` or `pnpm test:web`
+
+### Rust
+
+- **Framework:** Built-in `cargo test`
+- **Location:** `src/` or `tests/` directory
+- **Run per crate:** `cargo test -p <crate>`
+
+### Testing Philosophy
+
+- Prefer unit tests for logic
+- Light smoke tests for flows
+- No strict coverage requirements yet
+
+## Commit Messages
+
+Use conventional commit style:
+
+- `feat:` - New features
+- `fix:` - Bug fixes
+- `improve:` - Enhancements to existing features
+- `refactor:` - Code refactoring
+- `docs:` - Documentation changes
+- `chore:` - Maintenance tasks
+
+### Examples
+
+```
+feat: add chapter markers to video player
+fix: hide watermark for pro users
+improve: optimize video export performance
+docs: update API authentication guide
+```
+
+## Pull Request Guidelines
+
+### Before Submitting
+
+1. Run quality checks:
+   ```bash
+   pnpm format
+   pnpm lint
+   pnpm typecheck
+   ```
+
+2. For Rust changes:
+   ```bash
+   cargo fmt
+   cargo test -p <crate>
+   ```
+
+3. Test your changes locally
+
+### PR Content
+
+- **Clear description:** Explain what and why
+- **Linked issues:** Reference related issues
+- **Screenshots/GIFs:** For UI changes
+- **Environment notes:** Document any `.env` changes
+- **Migration notes:** Document database changes
+- **Keep scope tight:** One feature/fix per PR
+
+### PR Checklist
+
+<Check>
+  Code follows style guidelines
+</Check>
+<Check>
+  Tests added/updated if needed
+</Check>
+<Check>
+  Documentation updated if behavior changes
+</Check>
+<Check>
+  No auto-generated files edited
+</Check>
+<Check>
+  Database migrations tested
+</Check>
+
+## Development Best Practices
+
+### Do Not
+
+- Start extra servers (use `pnpm dev:web` or `pnpm dev:desktop`)
+- Edit auto-generated files (`**/tauri.ts`, `**/queries.ts`, `apps/desktop/src-tauri/gen/**`)
+- Skip database flow: always `db:generate` → `db:push`
+- Commit secrets to VCS
+- Use `git` commands with `-i` flag (interactive not supported)
+
+### Do
+
+- Use existing scripts and Turbo filters
+- Clear `.turbo` only when necessary
+- Configure via `.env` from `pnpm env-setup`
+- Run `pnpm format` and `cargo fmt` before committing
+- Keep documentation in sync with code
+
+## Effect.ts Patterns
+
+When working with Effect in API routes:
+
+```typescript
+import { HttpApiBuilder } from "@effect/platform";
+import { Effect } from "effect";
+
+const api = HttpApiBuilder.group(ApiClass, "videos", (endpoints) =>
+  endpoints.endpoint("list", {
+    handler: () =>
+      Effect.gen(function* () {
+        const videos = yield* Videos;
+        return yield* videos.list();
+      }),
+  })
+);
+
+export const { handler } = apiToHandler(ApiLive);
+```
+
+- Use `Effect.gen` for effectful code
+- Acquire services with `yield*`
+- Translate domain errors to `HttpApiError`
+- Never call `runPromise` in route files
+
+## Code Formatting
+
+<Warning>
+  Always format code before completing work:
+  
+  ```bash
+  pnpm format
+  cargo fmt
+  ```
+</Warning>
+
+## Getting Help
+
+If you need help:
+
+- **Discord:** [Join our community](https://discord.com/invite/y8gdQ3WRN3)
+- **Issues:** [GitHub Issues](https://github.com/CapSoftware/cap/issues)
+- **Docs:** This documentation
+
+## Recognition
+
+Contributors are recognized through:
+
+- GitHub contributors page
+- Open bounties via [Algora](https://console.algora.io/org/CapSoftware/bounties?status=open)
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Setup" icon="wrench" href="/development/setup">
+    Set up your development environment
+  </Card>
+  <Card title="Architecture" icon="diagram-project" href="/development/architecture">
+    Learn about the codebase structure
+  </Card>
+</CardGroup>

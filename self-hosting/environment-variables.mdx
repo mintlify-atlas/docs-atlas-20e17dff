@@ -1,0 +1,706 @@
+---
+title: "Environment Variables"
+description: "Complete reference for all Cap configuration options"
+---
+
+Cap is configured entirely through environment variables. This reference documents all available options.
+
+## Quick Reference
+
+<AccordionGroup>
+  <Accordion title="Required Variables">
+    These must be set for Cap to function:
+
+    ```bash
+    DATABASE_URL=mysql://cap:password@mysql:3306/cap
+    WEB_URL=https://cap.yourdomain.com
+    NEXTAUTH_URL=https://cap.yourdomain.com
+    NEXTAUTH_SECRET=your-32-byte-secret
+    DATABASE_ENCRYPTION_KEY=your-32-byte-hex-key
+    CAP_AWS_BUCKET=cap
+    CAP_AWS_REGION=us-east-1
+    ```
+  </Accordion>
+
+  <Accordion title="Security Variables">
+    Critical for production security:
+
+    ```bash
+    NEXTAUTH_SECRET=generate-with-openssl-rand-hex-32
+    DATABASE_ENCRYPTION_KEY=generate-with-openssl-rand-hex-32
+    MEDIA_SERVER_WEBHOOK_SECRET=generate-with-openssl-rand-hex-32
+    ```
+  </Accordion>
+
+  <Accordion title="Optional but Recommended">
+    Enhance functionality:
+
+    ```bash
+    RESEND_API_KEY=re_xxxxx
+    RESEND_FROM_DOMAIN=yourdomain.com
+    DEEPGRAM_API_KEY=your-key
+    GROQ_API_KEY=your-key
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## General Configuration
+
+### DATABASE_URL
+
+**Required** | MySQL connection string
+
+```bash
+DATABASE_URL=mysql://user:password@host:port/database
+```
+
+<ParamField query="Format" type="string">
+  `mysql://[user]:[password]@[host]:[port]/[database]`
+</ParamField>
+
+**Examples**:
+
+<CodeGroup>
+```bash Local Docker
+DATABASE_URL=mysql://cap:password@mysql:3306/cap
+```
+
+```bash External MySQL
+DATABASE_URL=mysql://cap:SecurePass123@mysql.example.com:3306/cap
+```
+
+```bash PlanetScale
+DATABASE_URL=mysql://user:pass@aws.connect.psdb.cloud/cap?ssl={"rejectUnauthorized":true}
+```
+</CodeGroup>
+
+<Warning>
+  Cap requires **MySQL 8.0+**. MariaDB or other databases are not officially supported.
+</Warning>
+
+### WEB_URL
+
+**Required** | Public URL where Cap is accessible
+
+```bash
+WEB_URL=https://cap.yourdomain.com
+```
+
+Used for:
+- Generating share links
+- Email login links
+- OAuth redirect URLs
+- Desktop app connections
+
+<Note>
+  For local development, use `http://localhost:3000`
+</Note>
+
+### NEXTAUTH_URL
+
+**Required** | Should match WEB_URL
+
+```bash
+NEXTAUTH_URL=https://cap.yourdomain.com
+```
+
+Required by NextAuth.js for authentication. Must be identical to `WEB_URL`.
+
+### NEXTAUTH_SECRET
+
+**Required** | 32-byte secret for session encryption
+
+```bash
+NEXTAUTH_SECRET=abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789
+```
+
+**Generate**:
+```bash
+openssl rand -hex 32
+```
+
+<Warning>
+  **Critical for security**: Protects user sessions. Anyone with this secret can forge authentication tokens. Use a unique value for each deployment.
+</Warning>
+
+### DATABASE_ENCRYPTION_KEY
+
+**Optional but strongly recommended** | 32-byte hex string
+
+```bash
+DATABASE_ENCRYPTION_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+```
+
+**Generate**:
+```bash
+openssl rand -hex 32
+```
+
+Encrypts sensitive database fields:
+- AWS access keys
+- API keys stored in database
+- OAuth tokens
+
+<Warning>
+  Changing this key will make existing encrypted data unreadable. Back up before changing.
+</Warning>
+
+## Storage (S3) Configuration
+
+### CAP_AWS_BUCKET
+
+**Required** | S3 bucket name
+
+```bash
+CAP_AWS_BUCKET=cap
+```
+
+The bucket where videos and thumbnails are stored.
+
+### CAP_AWS_REGION
+
+**Required** | AWS region or equivalent
+
+```bash
+CAP_AWS_REGION=us-east-1
+```
+
+For MinIO or non-AWS providers, use any valid AWS region format (e.g., `us-east-1`).
+
+### CAP_AWS_ACCESS_KEY
+
+**Optional** | S3 access key ID
+
+```bash
+CAP_AWS_ACCESS_KEY=AKIAIOSFODNN7EXAMPLE
+```
+
+For MinIO (Docker Compose), this defaults to `MINIO_ROOT_USER`.
+For AWS S3, use your IAM access key.
+
+### CAP_AWS_SECRET_KEY
+
+**Optional** | S3 secret access key
+
+```bash
+CAP_AWS_SECRET_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+```
+
+For MinIO (Docker Compose), this defaults to `MINIO_ROOT_PASSWORD`.
+For AWS S3, use your IAM secret key.
+
+### S3_PUBLIC_ENDPOINT
+
+**Optional** | Public URL for S3 access
+
+```bash
+S3_PUBLIC_ENDPOINT=https://s3.yourdomain.com
+```
+
+**Examples**:
+
+<CodeGroup>
+```bash MinIO Local
+S3_PUBLIC_ENDPOINT=http://localhost:9000
+```
+
+```bash MinIO Production
+S3_PUBLIC_ENDPOINT=https://s3.yourdomain.com
+```
+
+```bash AWS S3
+S3_PUBLIC_ENDPOINT=https://s3.amazonaws.com
+```
+
+```bash Cloudflare R2
+S3_PUBLIC_ENDPOINT=https://pub-xxxxx.r2.cloudflarestorage.com
+```
+</CodeGroup>
+
+Used for:
+- Video playback URLs
+- Thumbnail URLs
+- Direct file access
+
+### S3_INTERNAL_ENDPOINT
+
+**Optional** | Internal endpoint for S3 access from server
+
+```bash
+S3_INTERNAL_ENDPOINT=http://minio:9000
+```
+
+Useful when:
+- Server-to-S3 communication can use internal network
+- Avoiding public internet for uploads (cost, speed)
+- Docker container networking
+
+If not set, falls back to `S3_PUBLIC_ENDPOINT`.
+
+### S3_PATH_STYLE
+
+**Optional** | Use path-style URLs (default: `true`)
+
+```bash
+S3_PATH_STYLE=true
+```
+
+- `true`: `http://endpoint/bucket/key` (MinIO, Backblaze)
+- `false`: `http://bucket.endpoint/key` (AWS S3)
+
+<Note>
+  MinIO and most S3-compatible providers require `S3_PATH_STYLE=true`.
+  AWS S3 works with both but defaults to `false`.
+</Note>
+
+### CAP_AWS_BUCKET_URL
+
+**Optional** | Custom public URL for bucket (CloudFront)
+
+```bash
+CAP_AWS_BUCKET_URL=https://cdn.yourdomain.com
+```
+
+Use when serving files through a CDN or CloudFront distribution.
+
+### CloudFront Configuration
+
+**Optional** | For signed CloudFront URLs
+
+```bash
+CAP_CLOUDFRONT_DISTRIBUTION_ID=E1234567890ABC
+CLOUDFRONT_KEYPAIR_ID=APKAXXXXXXXXXXXXXXXX
+CLOUDFRONT_KEYPAIR_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----\n...
+```
+
+Enables signed URLs with expiration for private videos.
+
+## Email Configuration
+
+### RESEND_API_KEY
+
+**Optional** | Resend API key for email sending
+
+```bash
+RESEND_API_KEY=re_xxxxxxxxxxxxx
+```
+
+Get from [resend.com](https://resend.com) dashboard.
+
+Without this:
+- Login links appear in server logs
+- No email notifications
+
+### RESEND_FROM_DOMAIN
+
+**Optional** | Verified domain for sending emails
+
+```bash
+RESEND_FROM_DOMAIN=yourdomain.com
+```
+
+Must be verified in your Resend account.
+
+Emails will be sent from: `noreply@yourdomain.com`
+
+## Authentication
+
+### Google OAuth
+
+**Optional** | Enable Google login
+
+```bash
+GOOGLE_CLIENT_ID=xxxxx.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-xxxxx
+```
+
+Setup:
+1. Create project in [Google Cloud Console](https://console.cloud.google.com)
+2. Enable Google+ API
+3. Create OAuth 2.0 credentials
+4. Add authorized redirect URI: `https://yourdomain.com/api/auth/callback/google`
+
+### WorkOS SSO
+
+**Optional** | Enterprise SSO via WorkOS
+
+```bash
+WORKOS_CLIENT_ID=client_xxxxx
+WORKOS_API_KEY=sk_xxxxx
+```
+
+For enterprise deployments with SAML/OIDC requirements.
+
+See [WorkOS docs](https://workos.com/docs) for setup.
+
+## AI Features
+
+### DEEPGRAM_API_KEY
+
+**Optional** | Audio transcription
+
+```bash
+DEEPGRAM_API_KEY=xxxxxxxxxxxxx
+```
+
+Enables:
+- Automatic video transcription
+- Searchable captions
+- Accessibility features
+
+Get from [deepgram.com](https://deepgram.com)
+
+### GROQ_API_KEY
+
+**Optional** | Fast AI summaries (recommended)
+
+```bash
+GROQ_API_KEY=gsk_xxxxx
+```
+
+Enables AI-generated video summaries using Groq's fast LLM inference.
+
+Get from [groq.com](https://groq.com)
+
+### OPENAI_API_KEY
+
+**Optional** | AI summaries via OpenAI
+
+```bash
+OPENAI_API_KEY=sk-xxxxx
+```
+
+Fallback for AI summaries if GROQ_API_KEY not set.
+
+Get from [platform.openai.com](https://platform.openai.com)
+
+### ANTHROPIC_API_KEY
+
+**Optional** | Claude AI chat
+
+```bash
+ANTHROPIC_API_KEY=sk-ant-xxxxx
+```
+
+Enables AI chat features powered by Claude.
+
+### REPLICATE_API_TOKEN
+
+**Optional** | Audio enhancement
+
+```bash
+REPLICATE_API_TOKEN=r8_xxxxx
+```
+
+Enables audio enhancement using Replicate's models.
+
+### SUPERMEMORY_API_KEY
+
+**Optional** | Supermemory integration
+
+```bash
+SUPERMEMORY_API_KEY=xxxxx
+SUPERMEMORY_KNOWLEDGE_TAG=cap
+```
+
+Integration with Supermemory for knowledge management.
+
+## Media Server
+
+### MEDIA_SERVER_URL
+
+**Optional** | URL of media server
+
+```bash
+MEDIA_SERVER_URL=http://media-server:3456
+```
+
+Default in Docker Compose: `http://media-server:3456`
+
+For external media server, use public URL.
+
+### MEDIA_SERVER_WEBHOOK_SECRET
+
+**Optional but recommended** | Webhook authentication
+
+```bash
+MEDIA_SERVER_WEBHOOK_SECRET=generate-with-openssl-rand-hex-32
+```
+
+**Generate**:
+```bash
+openssl rand -hex 32
+```
+
+Protects webhook endpoints from unauthorized requests.
+
+### MEDIA_SERVER_WEBHOOK_URL
+
+**Optional** | Base URL for webhooks
+
+```bash
+MEDIA_SERVER_WEBHOOK_URL=http://cap-web:3000
+```
+
+Default in Docker Compose: `http://cap-web:3000`
+
+For Docker Desktop on Mac/Windows, use `host.docker.internal`:
+```bash
+MEDIA_SERVER_WEBHOOK_URL=http://host.docker.internal:3000
+```
+
+## Application Settings
+
+### CAP_VIDEOS_DEFAULT_PUBLIC
+
+**Optional** | Default video visibility (default: `true`)
+
+```bash
+CAP_VIDEOS_DEFAULT_PUBLIC=false
+```
+
+- `true`: Videos are public by default
+- `false`: Videos are private by default
+
+### CAP_ALLOWED_SIGNUP_DOMAINS
+
+**Optional** | Restrict signups to specific domains
+
+```bash
+CAP_ALLOWED_SIGNUP_DOMAINS=company.com,partner.com
+```
+
+Comma-separated list of email domains allowed to sign up.
+
+If not set, all domains are allowed.
+
+**Example**: Only allow `@acme.com` emails:
+```bash
+CAP_ALLOWED_SIGNUP_DOMAINS=acme.com
+```
+
+## Analytics & Monitoring
+
+### Tinybird Analytics
+
+**Optional** | Video analytics via Tinybird
+
+```bash
+TINYBIRD_HOST=https://api.tinybird.co
+TINYBIRD_TOKEN=p.xxxxx
+```
+
+Enables:
+- View analytics
+- Play duration tracking
+- Geographic analytics
+- Engagement metrics
+
+See [Cap analytics setup](https://github.com/CapSoftware/Cap/tree/main/scripts/analytics) for provisioning.
+
+### PostHog
+
+**Optional** | Product analytics
+
+```bash
+POSTHOG_PERSONAL_API_KEY=phx_xxxxx
+```
+
+Integration with PostHog for user analytics.
+
+## Cap Cloud Variables
+
+<Note>
+  These variables are only needed for hosting Cap as a paid SaaS like cap.so. Self-hosters can ignore these.
+</Note>
+
+### Stripe Payments
+
+```bash
+STRIPE_SECRET_KEY=sk_xxxxx
+STRIPE_WEBHOOK_SECRET=whsec_xxxxx
+```
+
+For billing and subscription management.
+
+### Discord Webhooks
+
+```bash
+DISCORD_FEEDBACK_WEBHOOK_URL=https://discord.com/api/webhooks/xxxxx
+DISCORD_LOGS_WEBHOOK_URL=https://discord.com/api/webhooks/xxxxx
+```
+
+Send feedback and logs to Discord channels.
+
+### Dub.co Link Shortening
+
+```bash
+DUB_API_KEY=xxxxx
+```
+
+Shorten share links via Dub.co.
+
+### Vercel Integration
+
+```bash
+VERCEL_ENV=production
+VERCEL_TEAM_ID=team_xxxxx
+VERCEL_PROJECT_ID=prj_xxxxx
+VERCEL_AUTH_TOKEN=xxxxx
+VERCEL_AWS_ROLE_ARN=arn:aws:iam::xxxxx
+```
+
+For Vercel-specific deployments and integrations.
+
+## MySQL Configuration
+
+<Note>
+  These are for the MySQL container in Docker Compose. Not needed if using external database.
+</Note>
+
+### MYSQL_PASSWORD
+
+```bash
+MYSQL_PASSWORD=your-secure-password
+```
+
+Password for the `cap` MySQL user.
+
+### MYSQL_ROOT_PASSWORD
+
+```bash
+MYSQL_ROOT_PASSWORD=your-root-password
+```
+
+Password for the MySQL `root` user.
+
+## MinIO Configuration
+
+<Note>
+  These are for the MinIO container in Docker Compose. Not needed if using AWS S3 or other providers.
+</Note>
+
+### MINIO_ROOT_USER
+
+```bash
+MINIO_ROOT_USER=capadmin
+```
+
+MinIO admin username.
+
+### MINIO_ROOT_PASSWORD
+
+```bash
+MINIO_ROOT_PASSWORD=your-secure-password
+```
+
+MinIO admin password.
+
+Must be at least 8 characters.
+
+## Port Configuration
+
+### CAP_PORT
+
+**Optional** | Port for Cap web (default: `3000`)
+
+```bash
+CAP_PORT=8080
+```
+
+Change if port 3000 is in use.
+
+### MINIO_PORT
+
+**Optional** | MinIO API port (default: `9000`)
+
+```bash
+MINIO_PORT=9000
+```
+
+### MINIO_CONSOLE_PORT
+
+**Optional** | MinIO web console (default: `9001`)
+
+```bash
+MINIO_CONSOLE_PORT=9001
+```
+
+## Environment File Example
+
+Complete `.env` file for production:
+
+```bash .env
+# Public URLs
+WEB_URL=https://cap.yourdomain.com
+NEXTAUTH_URL=https://cap.yourdomain.com
+S3_PUBLIC_ENDPOINT=https://s3.yourdomain.com
+
+# Security (generate with: openssl rand -hex 32)
+NEXTAUTH_SECRET=your-generated-secret
+DATABASE_ENCRYPTION_KEY=your-generated-key
+MEDIA_SERVER_WEBHOOK_SECRET=your-generated-secret
+
+# Database
+DATABASE_URL=mysql://cap:password@mysql:3306/cap
+MYSQL_PASSWORD=your-mysql-password
+MYSQL_ROOT_PASSWORD=your-root-password
+
+# S3 Storage
+CAP_AWS_BUCKET=cap
+CAP_AWS_REGION=us-east-1
+CAP_AWS_ACCESS_KEY=capadmin
+CAP_AWS_SECRET_KEY=your-minio-password
+S3_INTERNAL_ENDPOINT=http://minio:9000
+S3_PATH_STYLE=true
+
+# MinIO
+MINIO_ROOT_USER=capadmin
+MINIO_ROOT_PASSWORD=your-minio-password
+
+# Email (optional)
+RESEND_API_KEY=re_xxxxx
+RESEND_FROM_DOMAIN=yourdomain.com
+
+# AI Features (optional)
+DEEPGRAM_API_KEY=xxxxx
+GROQ_API_KEY=gsk_xxxxx
+
+# Media Server
+MEDIA_SERVER_URL=http://media-server:3456
+MEDIA_SERVER_WEBHOOK_URL=http://cap-web:3000
+
+# Settings
+CAP_VIDEOS_DEFAULT_PUBLIC=true
+```
+
+## Validation
+
+Cap validates environment variables on startup. Check logs for errors:
+
+```bash
+docker compose logs cap-web | grep -i error
+```
+
+Common validation errors:
+- Missing required variables
+- Invalid URL formats
+- Incorrect secret lengths
+- Database connection failures
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="S3 Storage" icon="database" href="/self-hosting/s3-storage">
+    Detailed S3 configuration guides
+  </Card>
+  <Card title="Email Setup" icon="envelope" href="/self-hosting/email-setup">
+    Configure email delivery
+  </Card>
+  <Card title="SSL/HTTPS" icon="lock" href="/self-hosting/ssl-https">
+    Secure your deployment
+  </Card>
+  <Card title="Troubleshooting" icon="wrench" href="/self-hosting/troubleshooting">
+    Debug configuration issues
+  </Card>
+</CardGroup>

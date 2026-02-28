@@ -1,0 +1,436 @@
+---
+title: "Docker Compose Deployment"
+description: "Complete guide to deploying Cap with Docker Compose"
+---
+
+Docker Compose is the recommended deployment method for Cap. It provides a simple, reproducible way to run all required services on any Docker-capable host.
+
+## Architecture Overview
+
+The Docker Compose setup includes:
+
+```
+┌─────────────────────────────────────────────────┐
+│                  Docker Network                 │
+│                                                 │
+│  ┌──────────────┐       ┌──────────────┐       │
+│  │   Cap Web    │◄─────►│    MySQL     │       │
+│  │  (port 3000) │       │  (port 3306) │       │
+│  └──────┬───────┘       └──────────────┘       │
+│         │                                       │
+│         │               ┌──────────────┐       │
+│         └──────────────►│    MinIO     │       │
+│         │               │ (ports 9000, │       │
+│         │               │       9001)  │       │
+│         │               └──────────────┘       │
+│         │                                       │
+│         │               ┌──────────────┐       │
+│         └──────────────►│ Media Server │       │
+│                         │ (port 3456)  │       │
+│                         └──────────────┘       │
+└─────────────────────────────────────────────────┘
+```
+
+## Prerequisites
+
+<Tabs>
+  <Tab title="Linux">
+    Install Docker:
+    ```bash
+    curl -fsSL https://get.docker.com -o get-docker.sh
+    sudo sh get-docker.sh
+    sudo usermod -aG docker $USER
+    ```
+
+    Log out and back in for group changes to take effect.
+  </Tab>
+
+  <Tab title="macOS">
+    Install [Docker Desktop for Mac](https://docs.docker.com/desktop/install/mac-install/)
+
+    Docker Compose is included with Docker Desktop.
+  </Tab>
+
+  <Tab title="Windows">
+    Install [Docker Desktop for Windows](https://docs.docker.com/desktop/install/windows-install/)
+
+    Requires WSL 2. Docker Compose is included.
+  </Tab>
+</Tabs>
+
+Verify installation:
+
+```bash
+docker --version
+docker compose version
+```
+
+## Installation
+
+<Steps>
+  <Step title="Clone Repository">
+    ```bash
+    git clone https://github.com/CapSoftware/Cap.git
+    cd Cap
+    ```
+  </Step>
+
+  <Step title="Review docker-compose.yml">
+    The `docker-compose.yml` file defines all services:
+
+    ```yaml docker-compose.yml
+    services:
+      cap-web:          # Main Next.js application
+      media-server:     # FFmpeg video processing
+      mysql:            # Database
+      minio:            # S3-compatible storage
+      minio-setup:      # One-time MinIO bucket configuration
+    ```
+
+    Services are configured with:
+    - Health checks for reliability
+    - Automatic restarts on failure
+    - Persistent volumes for data
+    - Networked communication
+  </Step>
+
+  <Step title="Configure Environment Variables">
+    Create a `.env` file for your configuration:
+
+    ```bash
+    touch .env
+    ```
+
+    See [Environment Variables](/self-hosting/environment-variables) for all options.
+
+    **Minimum production configuration**:
+
+    ```bash .env
+    # Public URLs
+    CAP_URL=https://cap.yourdomain.com
+    S3_PUBLIC_URL=https://s3.yourdomain.com
+
+    # Security Secrets (generate with: openssl rand -hex 32)
+    NEXTAUTH_SECRET=
+    DATABASE_ENCRYPTION_KEY=
+    MEDIA_SERVER_WEBHOOK_SECRET=
+
+    # Database Passwords
+    MYSQL_PASSWORD=
+    MYSQL_ROOT_PASSWORD=
+
+    # MinIO Credentials
+    MINIO_ROOT_USER=capadmin
+    MINIO_ROOT_PASSWORD=
+    ```
+  </Step>
+
+  <Step title="Start Services">
+    ```bash
+    docker compose up -d
+    ```
+
+    The `-d` flag runs containers in the background.
+
+    First startup will:
+    - Pull pre-built images (~2GB total)
+    - Create Docker volumes
+    - Initialize MySQL database
+    - Configure MinIO bucket
+    - Run database migrations
+
+    This takes 2-5 minutes depending on your internet connection.
+  </Step>
+
+  <Step title="Verify Health">
+    Wait for all services to be healthy:
+
+    ```bash
+    docker compose ps
+    ```
+
+    Expected output:
+    ```
+    NAME                 STATUS
+    cap-web              Up (healthy)
+    cap-media-server     Up (healthy)
+    cap-mysql            Up (healthy)
+    cap-minio            Up (healthy)
+    cap-minio-setup      Exited (0)
+    ```
+
+    <Note>
+      `cap-minio-setup` exits after creating the bucket. This is expected behavior.
+    </Note>
+  </Step>
+</Steps>
+
+## Port Configuration
+
+By default, Cap uses these ports:
+
+| Service | Port | Purpose | Customizable |
+|---------|------|---------|-------------|
+| Cap Web | 3000 | Main application | Yes (`CAP_PORT`) |
+| MinIO API | 9000 | S3-compatible storage | Yes (`MINIO_PORT`) |
+| MinIO Console | 9001 | MinIO admin UI | Yes (`MINIO_CONSOLE_PORT`) |
+| MySQL | 3306 | Database (internal only) | No |
+| Media Server | 3456 | FFmpeg processing (internal only) | No |
+
+### Custom Port Example
+
+To run Cap on port 8080:
+
+```bash .env
+CAP_PORT=8080
+```
+
+Then restart:
+
+```bash
+docker compose down
+docker compose up -d
+```
+
+## Data Persistence
+
+Cap uses Docker volumes to persist data:
+
+```bash
+# View volumes
+docker volume ls | grep cap
+
+# Inspect volume
+docker volume inspect cap_cap-mysql-data
+```
+
+| Volume | Contents |
+|--------|----------|
+| `cap-mysql-data` | User accounts, video metadata, settings |
+| `cap-minio-data` | Video files and thumbnails |
+
+<Warning>
+  **Backup these volumes regularly**. They contain all your data. See [Scaling](/self-hosting/scaling) for backup strategies.
+</Warning>
+
+## Updating Cap
+
+Update to the latest version:
+
+<Steps>
+  <Step title="Pull Latest Changes">
+    ```bash
+    cd Cap
+    git pull
+    ```
+  </Step>
+
+  <Step title="Pull New Images">
+    ```bash
+    docker compose pull
+    ```
+  </Step>
+
+  <Step title="Restart Services">
+    ```bash
+    docker compose up -d
+    ```
+
+    Docker Compose will:
+    - Recreate containers with new images
+    - Preserve existing volumes (data)
+    - Run any new database migrations
+  </Step>
+
+  <Step title="Verify Update">
+    ```bash
+    docker compose logs cap-web | head -20
+    ```
+
+    Check for successful startup and migration logs.
+  </Step>
+</Steps>
+
+## Building Images Locally
+
+By default, Cap uses pre-built images from GitHub Container Registry. To build from source:
+
+<Warning>
+  Building from source requires 8GB+ RAM and takes 10-20 minutes.
+</Warning>
+
+```bash
+# Build all images
+docker compose build
+
+# Build specific service
+docker compose build cap-web
+
+# Build and start
+docker compose up -d --build
+```
+
+This is useful for:
+- Testing local code changes
+- Running unreleased features
+- Customizing the Cap codebase
+
+## Monitoring
+
+### View Logs
+
+```bash
+# All services
+docker compose logs -f
+
+# Specific service
+docker compose logs cap-web -f
+
+# Last 100 lines
+docker compose logs --tail=100 cap-web
+
+# Since specific time
+docker compose logs --since 10m cap-web
+```
+
+### Resource Usage
+
+```bash
+# Container stats
+docker stats
+
+# Disk usage
+docker system df
+```
+
+### Health Checks
+
+Cap includes health checks for all services:
+
+```bash
+# Check health status
+docker compose ps
+
+# View health check logs
+docker inspect cap-web | grep -A 10 Health
+```
+
+## Advanced Configuration
+
+### Custom docker-compose.override.yml
+
+Create `docker-compose.override.yml` to customize without modifying the base file:
+
+```yaml docker-compose.override.yml
+services:
+  cap-web:
+    environment:
+      LOG_LEVEL: debug
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  mysql:
+    command:
+      - --max_connections=2000
+```
+
+Changes apply automatically on `docker compose up -d`.
+
+### External Database
+
+To use an external MySQL database:
+
+1. Remove `mysql` service from docker-compose.yml
+2. Update `DATABASE_URL` in `.env`:
+
+```bash .env
+DATABASE_URL=mysql://user:password@external-db.example.com:3306/cap
+```
+
+### External S3
+
+To use AWS S3 instead of MinIO:
+
+1. Remove `minio` and `minio-setup` services
+2. Configure S3 environment variables:
+
+```bash .env
+CAP_AWS_BUCKET=your-bucket-name
+CAP_AWS_REGION=us-east-1
+CAP_AWS_ACCESS_KEY=AKIAIOSFODNN7EXAMPLE
+CAP_AWS_SECRET_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+S3_PUBLIC_ENDPOINT=https://s3.amazonaws.com
+S3_PATH_STYLE=false
+```
+
+See [S3 Storage](/self-hosting/s3-storage) for details.
+
+## Troubleshooting
+
+### Container Won't Start
+
+```bash
+# Check logs
+docker compose logs [service-name]
+
+# Check if port is in use
+sudo lsof -i :3000
+
+# Restart service
+docker compose restart [service-name]
+```
+
+### Database Connection Issues
+
+```bash
+# Verify MySQL is healthy
+docker compose ps mysql
+
+# Check MySQL logs
+docker compose logs mysql
+
+# Test connection from cap-web
+docker compose exec cap-web sh -c 'wget -O- mysql:3306'
+```
+
+### MinIO Issues
+
+```bash
+# Access MinIO console
+open http://localhost:9001
+
+# Login with MINIO_ROOT_USER and MINIO_ROOT_PASSWORD
+
+# Verify bucket exists
+docker compose exec minio mc ls local/
+```
+
+### Full Reset
+
+<Warning>
+  This deletes all data including videos and user accounts.
+</Warning>
+
+```bash
+docker compose down -v
+docker compose up -d
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="SSL/HTTPS Setup" icon="lock" href="/self-hosting/ssl-https">
+    Configure reverse proxy with SSL certificates
+  </Card>
+  <Card title="Email Configuration" icon="envelope" href="/self-hosting/email-setup">
+    Set up email delivery with Resend
+  </Card>
+  <Card title="Scaling" icon="chart-line" href="/self-hosting/scaling">
+    Scale for production workloads
+  </Card>
+  <Card title="Troubleshooting" icon="wrench" href="/self-hosting/troubleshooting">
+    Common issues and solutions
+  </Card>
+</CardGroup>

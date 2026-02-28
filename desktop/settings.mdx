@@ -1,0 +1,384 @@
+---
+title: 'Desktop App Settings'
+description: 'Configure Cap Desktop preferences and customize your experience'
+---
+
+## Accessing Settings
+
+Open Settings by:
+
+- Clicking the **gear icon** in the main window
+- Using the keyboard shortcut (if configured)
+- Selecting Cap → Settings from menu bar (macOS)
+
+## General Settings
+
+### Appearance
+
+Choose your interface theme:
+
+<CardGroup cols={3}>
+  <Card title="System" icon="desktop">
+    Match your operating system theme
+  </Card>
+  <Card title="Light" icon="sun">
+    Light interface theme
+  </Card>
+  <Card title="Dark" icon="moon">
+    Dark interface theme (default)
+  </Card>
+</CardGroup>
+
+### App Settings (macOS)
+
+#### Dock Icon
+
+- **Always show dock icon**: Keep Cap in the dock even with no windows
+- **Hide dock icon**: Remove from dock when all windows are closed
+
+<Info>
+  Hiding the dock icon creates a menubar-only experience. Access Cap from the menubar icon.
+</Info>
+
+#### System Notifications
+
+Enable or disable system notifications for:
+
+- Recording started/stopped
+- Upload completed  
+- Files saved to clipboard
+- Errors and warnings
+
+<Note>
+  You may need to grant notification permissions in System Settings → Notifications.
+</Note>
+
+## Recording Settings
+
+### Instant Mode Resolution
+
+Set maximum resolution for Instant Mode recordings:
+
+- **720p** (1280×720): Fastest upload
+- **1080p** (1920×1080): Recommended balance
+- **1440p** (2560×1440): Higher quality
+- **4K** (3840×2160): Maximum quality
+
+<Tip>
+  Higher resolutions create larger files and longer upload times. Choose based on your content needs.
+</Tip>
+
+### Recording Countdown
+
+Set countdown delay before recording starts:
+
+- **Off**: Immediate start
+- **3 seconds**: Quick countdown
+- **5 seconds**: Standard (gives time to prepare)
+- **10 seconds**: Extended (for complex setups)
+
+### Main Window Behavior
+
+Choose what happens when you start recording:
+
+- **Close**: Main window closes (recommended)
+- **Minimise**: Main window minimizes to taskbar/dock
+
+### Post-Recording Behavior
+
+#### Studio Mode
+
+- **Open editor**: Automatically open video editor (default)
+- **Show in overlay**: Display recording in overlay menu
+
+#### Instant Mode
+
+- **Delete after upload**: Automatically remove local file after successful upload
+- **Keep local copy**: Preserve recording file on device
+
+### Post-Deletion Behavior
+
+After deleting an in-progress recording:
+
+- **Do Nothing**: Stay on current screen
+- **Reopen Recording Window**: Return to main window to start a new recording
+
+### Crash Recovery
+
+Enable crash-recoverable recording:
+
+<Check>
+  **Enabled** (Recommended)
+</Check>
+
+- Records in fragmented segments
+- Recoverable if app crashes or power is lost
+- Slightly higher storage usage during recording
+- Can recover partial recordings
+
+<Warning>
+  Disabling crash recovery means recordings cannot be recovered if Cap closes unexpectedly.
+</Warning>
+
+### Maximum Frame Rate
+
+Set capture frame rate limit:
+
+- **30 FPS**: Lower CPU usage, standard quality
+- **60 FPS**: Recommended for most use cases
+- **120 FPS**: High-fidelity, higher system requirements
+
+<Warning>
+  Framerates above 60 FPS may cause frame drops or increased CPU usage on some systems.
+</Warning>
+
+## Cap Pro Settings
+
+<Info>
+  These settings require a Cap Pro subscription.
+</Info>
+
+### Auto-Open Links
+
+- **Enabled**: Automatically open shareable links in browser after upload
+- **Disabled**: Copy link to clipboard only
+
+## Default Project Name
+
+Customize the naming template for recordings and projects:
+
+### Template Variables
+
+<ResponseField name="{recording_mode}" type="string">
+  Recording mode: "Studio", "Instant", or "Screenshot"
+</ResponseField>
+
+<ResponseField name="{mode}" type="string">
+  Lowercase mode: "studio", "instant", or "screenshot"
+</ResponseField>
+
+<ResponseField name="{target_kind}" type="string">
+  Recording target: "Display", "Window", or "Area"
+</ResponseField>
+
+<ResponseField name="{target_name}" type="string">
+  Name of the monitor or application window
+</ResponseField>
+
+<ResponseField name="{date}" type="string">
+  Current date in YYYY-MM-DD format
+</ResponseField>
+
+<ResponseField name="{time}" type="string">
+  Current time in HH:MM AM/PM format
+</ResponseField>
+
+<ResponseField name="{moment:FORMAT}" type="string">
+  Custom date/time format using moment.js syntax
+</ResponseField>
+
+### Example Templates
+
+```text Default Template
+{target_name} ({target_kind}) {date} {time}
+Example: Chrome (Window) 2024-03-15 2:30 PM
+```
+
+```text Custom Format
+{mode}_{target_name}_{moment:YYYY-MM-DD_HHmmss}
+Example: studio_Chrome_2024-03-15_143022
+```
+
+```text Simple Format
+{recording_mode} {date}
+Example: Studio 2024-03-15
+```
+
+<Tip>
+  Click the code snippets in the customization panel to copy template variables.
+</Tip>
+
+## Excluded Windows
+
+Manage which windows are hidden from recordings:
+
+### Adding Exclusions
+
+1. Click **Add** button
+2. Choose from open windows list
+3. Selected window will be hidden in future recordings
+
+### Default Exclusions
+
+Cap automatically excludes:
+
+- Cap main window
+- Cap recording controls
+- Cap camera preview
+- Cap settings window
+
+<Note>
+  On Windows, only Cap-related windows can be excluded due to platform limitations.
+</Note>
+
+### Removing Exclusions
+
+1. Find the window in the excluded list
+2. Click the **X** button next to it
+3. Window will appear in future recordings
+
+### Reset to Default
+
+Click **Reset to Default** to restore Cap's standard exclusion list.
+
+## Self-Hosting
+
+<Warning>
+  Only change these settings if you are running your own Cap Web instance.
+</Warning>
+
+### Cap Server URL
+
+Set custom Cap Web server:
+
+1. Enter your server URL (e.g., `https://cap.yourdomain.com`)
+2. Click **Update**
+3. You'll be signed out and need to sign in to your instance
+
+<Info>
+  Default: `https://cap.so`
+</Info>
+
+## Hotkeys
+
+Configure keyboard shortcuts for:
+
+- **Start/Stop Recording**: Begin or end a recording
+- **Pause/Resume**: Pause and resume current recording
+- **Take Screenshot**: Capture a screenshot
+- **Show/Hide Main Window**: Toggle main window visibility
+
+### Setting a Hotkey
+
+1. Click the hotkey field
+2. Press your desired key combination
+3. Changes save automatically
+
+<Tip>
+  Use modifier keys (Cmd/Ctrl, Shift, Alt) for conflict-free shortcuts.
+</Tip>
+
+## Integrations
+
+### S3 Upload
+
+Configure custom S3 storage for uploads:
+
+1. Navigate to **Settings** → **Integrations** → **S3**
+2. Enter your S3 credentials:
+   - Bucket name
+   - Region
+   - Access key ID
+   - Secret access key
+3. Test connection
+4. Save settings
+
+<Info>
+  S3 integration allows uploads to your own storage instead of Cap's servers.
+</Info>
+
+## Screenshots
+
+Configure screenshot-specific settings:
+
+- **Default save location**: Choose where screenshots are saved
+- **Filename format**: Customize screenshot naming
+- **Copy to clipboard**: Auto-copy screenshots after capture
+
+## License
+
+Manage your Cap license:
+
+- View current license status
+- Check subscription details
+- Activate or deactivate license
+- Manage billing (redirects to web app)
+
+## Feedback
+
+Send feedback directly from the app:
+
+1. Open **Settings** → **Feedback**
+2. Describe your issue or suggestion
+3. Attach logs (automatically included)
+4. Submit to Cap team
+
+<Info>
+  Including logs helps the team diagnose issues faster.
+</Info>
+
+## Changelog
+
+View release notes and recent updates:
+
+- See what's new in current version
+- Review past changes
+- Check for updates
+
+## Experimental Features
+
+<Warning>
+  Experimental features may be unstable. Use at your own risk.
+</Warning>
+
+Toggle preview features:
+
+- New rendering engines
+- Beta functionality
+- Advanced options
+
+<Info>
+  Experimental features help shape future Cap releases. Your feedback is valuable!
+</Info>
+
+## Resetting Settings
+
+To reset all settings to defaults:
+
+1. Individual sections have **Reset** buttons
+2. Or reinstall Cap for complete reset
+3. Your recordings are not affected
+
+## Data and Privacy
+
+### Local Storage
+
+Cap stores locally:
+
+- Recording files
+- Project data
+- Settings and preferences
+- Application cache
+
+### Cloud Sync
+
+Only uploaded when you explicitly share:
+
+- Exported videos
+- Metadata (title, description)
+- Thumbnails
+
+<Info>
+  Your recordings never leave your device unless you choose to upload them.
+</Info>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Recording" icon="record-vinyl" href="/desktop/recording">
+    Start recording with your configured settings
+  </Card>
+  <Card title="Uploading" icon="cloud-arrow-up" href="/web/uploading">
+    Learn how to share your recordings
+  </Card>
+</CardGroup>

@@ -1,0 +1,212 @@
+---
+title: 'Recording with Cap Desktop'
+description: 'Learn how to record your screen, windows, or specific areas with Cap Desktop'
+---
+
+## Starting a Recording
+
+Cap Desktop provides multiple recording modes to capture exactly what you need:
+
+### Recording Modes
+
+<CardGroup cols={2}>
+  <Card title="Display" icon="desktop">
+    Record your entire screen or a specific monitor
+  </Card>
+  <Card title="Window" icon="window-maximize">
+    Record a specific application window
+  </Card>
+  <Card title="Area" icon="crop-simple">
+    Record a custom area of your screen
+  </Card>
+  <Card title="Camera Only" icon="camera">
+    Record only your camera feed
+  </Card>
+</CardGroup>
+
+## Selecting Your Recording Target
+
+### Display Recording
+
+1. Click the **Display** button in the main window
+2. Choose your target monitor from the dropdown menu
+3. Your entire selected display will be outlined for recording
+4. Click the record button to start
+
+<Note>
+  If you have multiple monitors, Cap will show thumbnails of each display to help you select the right one.
+</Note>
+
+### Window Recording
+
+1. Click the **Window** button in the main window
+2. Browse the list of open applications with preview thumbnails
+3. Use the search bar to quickly find a specific window
+4. Select your target window
+5. Cap will automatically focus the window when recording starts
+
+<Tip>
+  Window recording automatically excludes Cap's own windows from your recording to prevent visual clutter.
+</Tip>
+
+### Area Recording
+
+1. Click the **Area** button
+2. Click and drag to define your recording area
+3. Adjust the selection bounds as needed
+4. The selected area will be highlighted with overlay indicators
+5. Click record to capture only the defined region
+
+### Camera Only Mode
+
+1. Click **Camera Only** to record just your webcam
+2. This mode disables system audio capture
+3. Perfect for creating talking-head videos or selfie recordings
+
+## Recording Controls
+
+### Countdown Timer
+
+Configure a countdown before recording starts:
+
+- **Off**: Recording starts immediately
+- **3 seconds**: Brief countdown
+- **5 seconds**: Standard countdown
+- **10 seconds**: Extended countdown for preparation
+
+<Info>
+  Set your preferred countdown in Settings → General → Recording countdown
+</Info>
+
+### Main Window Behavior
+
+Choose what happens to the Cap window when you start recording:
+
+- **Close**: Main window closes completely (default)
+- **Minimise**: Main window minimizes to taskbar/dock
+
+### Recording Status
+
+During recording, Cap displays a floating control bar showing:
+
+- Current recording time
+- Microphone audio level indicator
+- Camera status (if enabled)
+- Quality indicators and warnings
+
+## Studio Mode vs Instant Mode
+
+<CodeGroup>
+
+```text Studio Mode
+- High-quality local recording
+- Full editing capabilities after recording
+- Requires manual export/upload
+- No time limits
+- Maximum resolution up to your display
+```
+
+```text Instant Mode
+- Quick recording with automatic upload
+- Optimized for sharing
+- Configurable resolution limit (720p/1080p/1440p/4K)
+- Shorter processing time
+- Auto-opens shareable link
+```
+
+</CodeGroup>
+
+<Tip>
+  Configure Instant Mode max resolution in Settings → General → Instant mode max resolution
+</Tip>
+
+## Advanced Recording Options
+
+### Frame Rate
+
+Set your maximum capture framerate:
+
+- **30 FPS**: Standard quality, lower CPU usage
+- **60 FPS**: Recommended for most use cases
+- **120 FPS**: High-fidelity capture (may impact performance)
+
+<Warning>
+  Higher framerates may cause frame drops or increased CPU usage on some systems.
+</Warning>
+
+### Crash Recovery
+
+Enable crash-recoverable recording to protect against:
+
+- Application crashes
+- System power loss
+- Unexpected interruptions
+
+Recordings are saved in fragmented segments that can be recovered even if Cap closes unexpectedly.
+
+<Note>
+  Crash recovery may use slightly more storage during recording but ensures your content is safe.
+</Note>
+
+## During Recording
+
+While recording, you have access to these controls:
+
+- **Stop**: End the recording and open the editor (Studio) or begin upload (Instant)
+- **Pause/Resume**: Temporarily pause recording (available in Studio mode and on macOS/Windows Instant mode)
+- **Restart**: Discard current recording and start over
+- **Delete**: Cancel and delete the recording
+- **Settings**: Adjust camera and microphone inputs mid-recording
+
+### Real-time Monitoring
+
+- **Audio Level**: Visual indicator shows microphone input level
+- **Camera Status**: Icon shows if camera is active and connected
+- **Recording Warnings**: Alerts for disconnected inputs or quality issues
+
+<Info>
+  If your camera or microphone disconnects during recording, Cap will show a warning but continue recording. You can reconnect the device and resume.
+</Info>
+
+## Keyboard Shortcuts
+
+Quickly control your recordings with hotkeys (configurable in Settings → Hotkeys):
+
+- Start/Stop Recording
+- Pause/Resume Recording  
+- Take Screenshot
+- Show/Hide Main Window
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Recording shows black screen">
+    On macOS, ensure Cap has Screen Recording permission in System Settings → Privacy & Security → Screen Recording
+  </Accordion>
+  
+  <Accordion title="Window recording not available">
+    Some applications may restrict window capture. Try Display or Area recording instead.
+  </Accordion>
+  
+  <Accordion title="Frame drops during recording">
+    - Lower the maximum FPS in General Settings
+    - Close unnecessary applications
+    - Try recording a smaller area
+    - Reduce resolution for Instant Mode
+  </Accordion>
+  
+  <Accordion title="Recording stops unexpectedly">
+    If crash recovery is enabled, your recording should be recoverable. Check the recordings list for a recovery option.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Camera Setup" icon="camera" href="/desktop/camera">
+    Configure your camera and picture-in-picture settings
+  </Card>
+  <Card title="Editing Videos" icon="scissors" href="/desktop/editing">
+    Learn how to edit your recordings in Studio mode
+  </Card>
+</CardGroup>

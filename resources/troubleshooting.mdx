@@ -1,0 +1,383 @@
+---
+title: Troubleshooting
+description: Solutions to common issues with Cap
+---
+
+## Installation Issues
+
+### Desktop App Won't Install
+
+**Problem:** Cap Desktop installer fails or won't open
+
+**Solutions:**
+- **macOS:** Check if you need to allow the app in System Preferences → Security & Privacy
+- **Windows:** Make sure you have the latest Visual C++ Redistributables installed
+- Download the latest version from [cap.so/download](https://cap.so/download)
+
+### Missing Dependencies During Development Setup
+
+**Problem:** `pnpm cap-setup` fails with missing dependencies
+
+**Platform-specific solutions:**
+
+**Windows:**
+```bash
+# Install LLVM, Clang, and VCPKG manually
+# pnpm cap-setup does not yet install these automatically
+```
+
+**macOS:**
+```bash
+brew install cmake
+```
+
+**All platforms:**
+```bash
+pnpm install
+pnpm cap-setup
+```
+
+## Recording Issues
+
+### No Permission to Record Screen (macOS)
+
+**Problem:** Cap can't record screen even after granting permissions
+
+**Solution:**
+
+When running from terminal (development mode), grant permissions to the **terminal app**, not Cap:
+
+1. Go to System Preferences → Security & Privacy → Screen Recording
+2. Enable permissions for your terminal app (Terminal.app, iTerm, etc.)
+3. Restart the terminal and Cap
+
+For the installed desktop app, grant permissions to Cap directly.
+
+### Recording Failed to Upload
+
+**Problem:** Recording completes but fails to upload to server
+
+**Solutions:**
+
+1. Check your internet connection
+2. Verify server URL in Settings → Cap Server URL
+3. For self-hosted instances, ensure S3 storage is configured correctly
+4. Check server logs for errors:
+   ```bash
+   docker compose logs cap-web
+   ```
+
+### Recording Files Missing
+
+**Problem:** Can't find recorded videos
+
+**Local storage locations:**
+
+**macOS:**
+```
+~/Library/Application Support/so.cap.desktop.dev/recordings
+```
+
+**Windows:**
+```
+%programfiles%/so.cap.desktop.dev/recordings
+```
+
+Recordings are stored locally first, then uploaded to your Cap server.
+
+### Poor Video Quality
+
+**Problem:** Recordings are blurry or low quality
+
+**Solutions:**
+- Check your recording settings for quality/resolution options
+- Ensure you have sufficient disk space
+- Close unnecessary applications to free up system resources
+- Update to the latest version of Cap Desktop
+
+## Self-Hosting Issues
+
+### Docker Compose Fails to Start
+
+**Problem:** `docker compose up -d` fails
+
+**Solutions:**
+
+1. Check Docker is running:
+   ```bash
+   docker --version
+   ```
+
+2. Clean and restart:
+   ```bash
+   docker compose down -v
+   docker compose up -d
+   ```
+
+3. Check logs for specific errors:
+   ```bash
+   docker compose logs
+   ```
+
+### Can't Access Self-Hosted Instance
+
+**Problem:** Cannot open `http://localhost:3000`
+
+**Solutions:**
+
+1. Verify containers are running:
+   ```bash
+   docker compose ps
+   ```
+
+2. Check if port 3000 is already in use:
+   ```bash
+   # macOS/Linux
+   lsof -i :3000
+   
+   # Windows
+   netstat -ano | findstr :3000
+   ```
+
+3. Check container logs:
+   ```bash
+   docker compose logs cap-web
+   ```
+
+### Login Links Not Working
+
+**Problem:** Magic login links don't work or aren't received
+
+**Solutions:**
+
+**Without email configured:**
+
+Login links appear in the logs:
+```bash
+docker compose logs cap-web
+```
+
+Look for URLs in the output and copy them to your browser.
+
+**With email configured:**
+
+1. Verify SMTP settings in `.env`
+2. Check email provider credentials
+3. Look for email errors in logs
+4. Test with a different email address
+
+### Database Connection Errors
+
+**Problem:** "Cannot connect to MySQL" or similar errors
+
+**Solutions:**
+
+1. Ensure MySQL container is running:
+   ```bash
+   docker compose ps
+   ```
+
+2. Check database credentials in `.env`
+
+3. Verify database was initialized:
+   ```bash
+   docker compose logs cap-mysql
+   ```
+
+4. For development, run migrations:
+   ```bash
+   pnpm db:generate
+   pnpm db:push
+   ```
+
+### S3 Storage Issues
+
+**Problem:** Videos won't upload or S3 errors
+
+**Solutions:**
+
+1. Verify MinIO/S3 is running:
+   ```bash
+   docker compose ps
+   ```
+
+2. Check S3 configuration in `.env`:
+   ```bash
+   S3_PUBLIC_URL=https://s3.yourdomain.com
+   ```
+
+3. For MinIO, access console at `http://localhost:9001`
+
+4. Verify bucket exists and permissions are correct
+
+### MariaDB Compatibility Issues
+
+**Problem:** Using MariaDB causes errors
+
+**Solution:**
+
+Cap is designed specifically for MySQL. While MariaDB may partially work, it is **not officially supported**. We recommend using MySQL for best compatibility:
+
+```yaml
+services:
+  db:
+    image: mysql:8.0
+```
+
+## Development Issues
+
+### TypeScript Errors After Pulling Changes
+
+**Problem:** Type errors after `git pull`
+
+**Solutions:**
+
+1. Reinstall dependencies:
+   ```bash
+   pnpm install
+   ```
+
+2. Regenerate database types:
+   ```bash
+   pnpm db:generate
+   ```
+
+3. Clear Turbo cache:
+   ```bash
+   rm -rf .turbo
+   ```
+
+4. Run typecheck:
+   ```bash
+   pnpm typecheck
+   ```
+
+### Auto-Generated Files Changed
+
+**Problem:** Git shows changes in auto-generated files
+
+**Solution:**
+
+**Never edit these files manually:**
+- `**/tauri.ts`
+- `**/queries.ts`
+- `apps/desktop/src-tauri/gen/**`
+
+Regenerate them instead:
+```bash
+pnpm db:generate
+```
+
+### Environment Setup Fails
+
+**Problem:** `pnpm env-setup` doesn't work as expected
+
+**Solutions:**
+
+1. Delete existing `.env`:
+   ```bash
+   rm .env
+   ```
+
+2. Run setup again:
+   ```bash
+   pnpm env-setup
+   ```
+
+3. Or manually create `.env` from example:
+   ```bash
+   cp .env.example .env
+   ```
+
+### Rust Build Fails
+
+**Problem:** Cargo/Rust compilation errors
+
+**Solutions:**
+
+1. Update Rust:
+   ```bash
+   rustup update
+   ```
+
+2. Ensure you have Rust 1.88.0+:
+   ```bash
+   rustc --version
+   ```
+
+3. Clear Cargo cache:
+   ```bash
+   cargo clean
+   ```
+
+4. Check platform-specific dependencies are installed (cmake, LLVM, etc.)
+
+### Turbo Build Cache Issues
+
+**Problem:** Builds failing with cache errors or stale builds
+
+**Solution:**
+
+Clear Turbo cache (use sparingly):
+```bash
+rm -rf .turbo
+pnpm build
+```
+
+### Database Migration Issues
+
+**Problem:** Migration errors or schema out of sync
+
+**Solutions:**
+
+1. Always follow this order:
+   ```bash
+   pnpm db:generate  # Generate migration
+   pnpm db:push      # Apply to database
+   ```
+
+2. For development, you can reset the database:
+   ```bash
+   docker compose down -v
+   docker compose up -d
+   pnpm db:push
+   ```
+
+3. Check migration journal:
+   ```bash
+   ls packages/database/drizzle/
+   ```
+
+## Getting More Help
+
+If you're still experiencing issues:
+
+### Community Support
+
+Join our Discord community for help:
+- [Cap Discord Server](https://discord.com/invite/y8gdQ3WRN3)
+
+### Report a Bug
+
+Create an issue on GitHub:
+- [GitHub Issues](https://github.com/CapSoftware/cap/issues/new)
+
+Include:
+- Operating system and version
+- Cap version
+- Steps to reproduce
+- Error messages or logs
+- Screenshots if applicable
+
+### Check Status
+
+For hosted cap.so service:
+- Check [GitHub](https://github.com/CapSoftware/Cap) for known issues
+- Search existing issues before creating new ones
+
+### Professional Support
+
+For self-hosting support and custom deployments, consider:
+- Checking our [self-hosting documentation](/self-hosting/overview)
+- Reaching out on Discord for community help
+- Contributing to the project and engaging with maintainers

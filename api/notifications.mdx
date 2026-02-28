@@ -1,0 +1,370 @@
+---
+title: Notification Endpoints
+description: Manage user notifications through the Cap API
+---
+
+## Overview
+
+The Notifications API allows you to retrieve and manage user notifications for video views, comments, reactions, and replies.
+
+## Endpoints
+
+### Get Notifications
+
+Retrieve all notifications for the authenticated user.
+
+```
+GET /api/notifications
+```
+
+<ParamField header="authorization" type="string" required>
+  Bearer token for authentication
+</ParamField>
+
+#### Response
+
+<ResponseField name="notifications" type="array">
+  Array of notification objects
+</ResponseField>
+
+<ResponseField name="count" type="object">
+  Record of notification counts by type
+</ResponseField>
+
+#### Example Request
+
+```bash
+curl -X GET "https://cap.so/api/notifications" \
+  -H "Authorization: Bearer <token>"
+```
+
+#### Example Response
+
+```json
+{
+  "notifications": [
+    {
+      "id": "notif_123",
+      "type": "comment",
+      "videoId": "vid_456",
+      "author": {
+        "id": "user_789",
+        "name": "John Doe",
+        "avatar": "https://example.com/avatar.jpg"
+      },
+      "comment": {
+        "id": "comment_321",
+        "content": "Great video!"
+      },
+      "readAt": null,
+      "createdAt": "2024-02-28T12:00:00Z"
+    },
+    {
+      "id": "notif_124",
+      "type": "view",
+      "videoId": "vid_456",
+      "author": {
+        "id": "user_790",
+        "name": "Jane Smith",
+        "avatar": null
+      },
+      "readAt": "2024-02-28T13:00:00Z",
+      "createdAt": "2024-02-28T12:30:00Z"
+    }
+  ],
+  "count": {
+    "comment": 5,
+    "view": 23,
+    "reaction": 8,
+    "reply": 2
+  }
+}
+```
+
+---
+
+## Notification Types
+
+Notifications can be one of four types:
+
+### View Notification
+
+Someone viewed your video.
+
+```typescript
+{
+  type: "view",
+  videoId: string,
+  author: NotificationAuthor,
+  id: string,
+  readAt: Date | null,
+  createdAt: Date
+}
+```
+
+### Comment Notification
+
+Someone commented on your video.
+
+```typescript
+{
+  type: "comment",
+  videoId: string,
+  author: NotificationAuthor,
+  comment: {
+    id: string,
+    content: string
+  },
+  id: string,
+  readAt: Date | null,
+  createdAt: Date
+}
+```
+
+### Reaction Notification
+
+Someone reacted to your video comment.
+
+```typescript
+{
+  type: "reaction",
+  videoId: string,
+  author: NotificationAuthor,
+  comment: {
+    id: string,
+    content: string
+  },
+  id: string,
+  readAt: Date | null,
+  createdAt: Date
+}
+```
+
+### Reply Notification
+
+Someone replied to your comment.
+
+```typescript
+{
+  type: "reply",
+  videoId: string,
+  author: NotificationAuthor,
+  comment: {
+    id: string,
+    content: string
+  },
+  id: string,
+  readAt: Date | null,
+  createdAt: Date
+}
+```
+
+---
+
+## Notification Schema
+
+### NotificationAuthor
+
+Information about the user who triggered the notification.
+
+<ResponseField name="id" type="string" required>
+  Unique identifier of the author
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Display name of the author
+</ResponseField>
+
+<ResponseField name="avatar" type="string | null" required>
+  URL to the author's avatar image, or null if not set
+</ResponseField>
+
+### NotificationBase
+
+Base fields present on all notifications.
+
+<ResponseField name="id" type="string" required>
+  Unique identifier of the notification
+</ResponseField>
+
+<ResponseField name="readAt" type="Date | null" required>
+  Timestamp when the notification was read, or null if unread
+</ResponseField>
+
+<ResponseField name="createdAt" type="Date" required>
+  Timestamp when the notification was created
+</ResponseField>
+
+### CommentData
+
+Comment information included in comment, reaction, and reply notifications.
+
+<ResponseField name="id" type="string" required>
+  Unique identifier of the comment
+</ResponseField>
+
+<ResponseField name="content" type="string" required>
+  Text content of the comment
+</ResponseField>
+
+---
+
+## Implementation Details
+
+The notifications endpoint is defined in `packages/web-api-contract/src/index.ts:91-102`:
+
+```typescript:packages/web-api-contract/src/index.ts
+notifications: c.router({
+  get: {
+    method: "GET",
+    path: "/notifications",
+    responses: {
+      200: z.object({
+        notifications: z.array(Notification),
+        count: z.record(z.string(), z.number()),
+      }),
+    },
+  },
+})
+```
+
+Notification types are defined in `packages/web-api-contract/src/index.ts:5-59`:
+
+```typescript:packages/web-api-contract/src/index.ts
+export const NotificationAuthor = z.object({
+  id: z.string(),
+  name: z.string(),
+  avatar: z.string().nullable(),
+});
+
+export const NotificationBase = z.object({
+  id: z.string(),
+  readAt: z.coerce.date().nullable(),
+  createdAt: z.coerce.date(),
+});
+
+export const Notification = z
+  .union([
+    z.object({
+      type: z.literal("view"),
+      videoId: z.string(),
+      author: NotificationAuthor,
+    }),
+    z.object({
+      type: z.literal("comment"),
+      videoId: z.string(),
+      author: NotificationAuthor,
+      comment: CommentData,
+    }),
+    // ...
+  ])
+  .and(NotificationBase);
+```
+
+---
+
+## Notification Preferences
+
+Users can manage notification preferences through a separate endpoint:
+
+```
+POST /api/notifications/preferences
+```
+
+Preferences are stored in the user's profile:
+
+```typescript
+interface NotificationPreferences {
+  notifications: {
+    pauseComments: boolean;
+    pauseReplies: boolean;
+    pauseViews: boolean;
+    pauseReactions: boolean;
+  };
+}
+```
+
+---
+
+## Error Responses
+
+### 401 Unauthorized
+
+```json
+{
+  "error": "Unauthorized"
+}
+```
+
+Authentication required or token invalid.
+
+### 500 Internal Server Error
+
+```json
+{
+  "error": "Internal server error",
+  "message": "Failed to fetch notifications"
+}
+```
+
+An unexpected error occurred on the server.
+
+---
+
+## Usage Example
+
+### TypeScript Client
+
+```typescript
+import { contract } from "@cap/web-api-contract";
+import { initClient } from "@ts-rest/core";
+
+const client = initClient(contract, {
+  baseUrl: "https://cap.so/api",
+  baseHeaders: {
+    Authorization: `Bearer ${token}`,
+  },
+});
+
+const { status, body } = await client.notifications.get();
+
+if (status === 200) {
+  console.log(`You have ${body.notifications.length} notifications`);
+  console.log(`Unread comments: ${body.count.comment || 0}`);
+}
+```
+
+### Filter Unread Notifications
+
+```typescript
+const unread = body.notifications.filter((n) => n.readAt === null);
+console.log(`${unread.length} unread notifications`);
+```
+
+### Group by Type
+
+```typescript
+const grouped = body.notifications.reduce((acc, notification) => {
+  if (!acc[notification.type]) {
+    acc[notification.type] = [];
+  }
+  acc[notification.type].push(notification);
+  return acc;
+}, {} as Record<string, typeof body.notifications>);
+
+console.log(`Comments: ${grouped.comment?.length || 0}`);
+console.log(`Views: ${grouped.view?.length || 0}`);
+```
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/api/authentication">
+    Learn about authentication methods
+  </Card>
+  <Card title="Videos" icon="video" href="/api/videos">
+    Manage videos via API
+  </Card>
+</CardGroup>

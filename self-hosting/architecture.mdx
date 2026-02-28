@@ -1,0 +1,521 @@
+---
+title: "Architecture Overview"
+description: "Understanding Cap's system architecture and components"
+---
+
+Cap is built as a modern, containerized application with multiple services working together. This guide explains the architecture and how components interact.
+
+## System Overview
+
+```
+┌────────────────────────────────────────────────────────┐
+│                     Cap Architecture                      │
+│                                                            │
+│   ┌──────────────────────────────────────────┐   │
+│   │              Client Layer               │   │
+│   │                                          │   │
+│   │  ┌─────────────┐   ┌─────────────┐  │   │
+│   │  │ Cap Desktop │   │ Web Browser │  │   │
+│   │  │   (Tauri)  │   │   (React)  │  │   │
+│   │  └──────┬──────┘   └──────┬──────┘  │   │
+│   └───────────│─────────────────│──────────┘   │
+│              │                 │                │
+│              └─────────┬─────────┘                │
+│                        │                           │
+│   ┌────────────────│─────────────────────────┐   │
+│   │              Application Layer           │   │
+│   │                                          │   │
+│   │  ┌────────────────────────────────┐  │   │
+│   │  │         Cap Web (Next.js)        │  │   │
+│   │  │  - Authentication (NextAuth)  │  │   │
+│   │  │  - API Routes                 │  │   │
+│   │  │  - Video Management           │  │   │
+│   │  │  - File Uploads               │  │   │
+│   │  └─────────────┬──────────────────┘  │   │
+│   │                 │                       │   │
+│   │  ┌─────────────┴──────────────────┐  │   │
+│   │  │      Media Server (Node.js)      │  │   │
+│   │  │  - FFmpeg video processing    │  │   │
+│   │  │  - Transcoding                │  │   │
+│   │  │  - Thumbnail generation       │  │   │
+│   │  └────────────────────────────────┘  │   │
+│   └──────────────────────────────────────────┘   │
+│                        │                           │
+│   ┌────────────────│─────────────────────────┐   │
+│   │              Data Layer               │   │
+│   │                                          │   │
+│   │  ┌─────────────┐   ┌─────────────┐  │   │
+│   │  │   MySQL 8    │   │ MinIO / S3  │  │   │
+│   │  │  Database   │   │   Storage   │  │   │
+│   │  └─────────────┘   └─────────────┘  │   │
+│   └──────────────────────────────────────────┘   │
+└────────────────────────────────────────────────────────┘
+```
+
+## Core Components
+
+### Cap Web (Next.js Application)
+
+**Technology Stack**:
+- Next.js 14 (App Router)
+- React Server Components
+- TypeScript
+- Drizzle ORM
+- NextAuth.js for authentication
+- Effect for functional programming
+
+**Responsibilities**:
+- User authentication and session management
+- Video metadata management
+- Web-based video player
+- Share page generation
+- API endpoints for Cap Desktop
+- File upload handling
+- User dashboard and settings
+
+**Key Directories**:
+```
+apps/web/
+├── app/               # Next.js app directory
+│   ├── api/           # API routes
+│   ├── s/             # Share pages
+│   └── dashboard/     # User dashboard
+├── lib/               # Shared utilities
+└── components/        # React components
+```
+
+### Media Server (FFmpeg Processing)
+
+**Technology Stack**:
+- Node.js with Bun runtime
+- FFmpeg for video processing
+- Express-like HTTP server
+
+**Responsibilities**:
+- Video transcoding and optimization
+- Thumbnail generation
+- Format conversion
+- Video compression
+- Webhook callbacks to Cap Web
+
+**Processing Pipeline**:
+1. Receives video processing request from Cap Web
+2. Downloads source video from S3
+3. Processes with FFmpeg:
+   - Transcodes to H.264 (web compatible)
+   - Generates multiple resolutions (if configured)
+   - Extracts thumbnail images
+4. Uploads processed files to S3
+5. Sends webhook to Cap Web with results
+
+**Key Files**:
+```
+apps/media-server/
+├── src/
+│   ├── index.ts       # Main server
+│   └── processors/    # FFmpeg processing logic
+└── Dockerfile         # Container build
+```
+
+### MySQL Database
+
+**Version**: MySQL 8.0
+
+**Schema Management**: Drizzle ORM with migrations
+
+**Key Tables**:
+
+```sql
+users
+  - id (primary key)
+  - email
+  - name
+  - created_at
+
+videos
+  - id (primary key)
+  - user_id (foreign key)
+  - title
+  - status (processing, ready, failed)
+  - s3_key
+  - thumbnail_url
+  - duration
+  - created_at
+
+comments
+  - id (primary key)
+  - video_id (foreign key)
+  - user_id (foreign key)
+  - content
+  - timestamp (video position)
+  - created_at
+
+share_links
+  - id (primary key)
+  - video_id (foreign key)
+  - short_code
+  - password_hash (optional)
+  - expires_at (optional)
+```
+
+**Configuration**:
+- Character set: utf8mb4 (full Unicode support)
+- Collation: utf8mb4_unicode_ci
+- Max connections: 1000
+- Authentication: mysql_native_password
+
+### S3 Storage (MinIO or AWS S3)
+
+**Bucket Structure**:
+
+```
+cap/
+├── videos/
+│   ├── raw/                    # Original uploads
+│   │   └── {video-id}.mp4
+│   └── processed/              # Transcoded videos
+│       └── {video-id}.mp4
+├── thumbnails/
+│   └── {video-id}.jpg
+└── avatars/
+    └── {user-id}.jpg
+```
+
+**Access Control**:
+- Public read access for videos and thumbnails
+- Authenticated write access only
+- CORS enabled for browser uploads
+
+## Request Flow
+
+### Video Upload Flow
+
+<Steps>
+  <Step title="Desktop App Initiates Upload">
+    1. User records video in Cap Desktop
+    2. Desktop app requests upload URL from Cap Web API
+    3. Cap Web generates presigned S3 URL
+  </Step>
+
+  <Step title="Direct Upload to S3">
+    4. Desktop app uploads video directly to S3
+    5. Upload bypasses Cap Web server (efficient)
+  </Step>
+
+  <Step title="Metadata Creation">
+    6. After upload completes, Desktop app notifies Cap Web
+    7. Cap Web creates database record with status: "processing"
+  </Step>
+
+  <Step title="Processing Request">
+    8. Cap Web sends processing request to Media Server
+    9. Media Server downloads video from S3
+  </Step>
+
+  <Step title="Video Processing">
+    10. FFmpeg transcodes video
+    11. Generates thumbnails
+    12. Uploads processed files to S3
+  </Step>
+
+  <Step title="Completion Webhook">
+    13. Media Server sends webhook to Cap Web
+    14. Cap Web updates database status: "ready"
+    15. Video is now available for playback
+  </Step>
+</Steps>
+
+```
+Desktop App            Cap Web              S3 Storage        Media Server
+     |                    |                      |                  |
+     |--1. Request URL--->|                      |                  |
+     |<--2. Presigned-----|                      |                  |
+     |                    |                      |                  |
+     |--------3. Upload video----------------->  |                  |
+     |<-------4. Success----------------------|  |                  |
+     |                    |                      |                  |
+     |--5. Notify-------->|                      |                  |
+     |                    |---6. Create record-->|                  |
+     |                    |                      |                  |
+     |                    |--------7. Process request-------------->|
+     |                    |                      |                  |
+     |                    |                      |<--8. Download----|  
+     |                    |                      |                  |
+     |                    |                      |                  |--9. FFmpeg
+     |                    |                      |                  |
+     |                    |                      |<--10. Upload-----|  
+     |                    |                      |                  |
+     |                    |<-------11. Webhook-------------------- -|
+     |                    |                      |                  |
+     |                    |--12. Update status-->|                  |
+```
+
+### Video Playback Flow
+
+<Steps>
+  <Step title="User Opens Share Link">
+    1. Browser requests `https://cap.yourdomain.com/s/{share-code}`
+    2. Cap Web looks up video by share code
+  </Step>
+
+  <Step title="Page Render">
+    3. Cap Web returns HTML with video player
+    4. Video source points to S3:
+       `https://s3.yourdomain.com/cap/videos/processed/{video-id}.mp4`
+  </Step>
+
+  <Step title="Direct Playback">
+    5. Browser fetches video directly from S3
+    6. No Cap Web server involvement in streaming
+    7. Efficient bandwidth usage
+  </Step>
+
+  <Step title="Analytics (Optional)">
+    8. Browser sends view events to Cap Web API
+    9. Cap Web logs to Tinybird (if configured)
+  </Step>
+</Steps>
+
+## Authentication Architecture
+
+### Passwordless Email Login
+
+1. User enters email on login page
+2. Cap Web generates magic link token
+3. Token stored in database with expiration (10 minutes)
+4. Email sent via Resend with login link
+5. User clicks link
+6. Cap Web validates token
+7. Creates session cookie
+8. User redirected to dashboard
+
+### Session Management
+
+NextAuth.js handles sessions:
+- **Strategy**: Database sessions (stored in MySQL)
+- **Cookie**: `next-auth.session-token`
+- **Lifetime**: 30 days
+- **Refresh**: Automatic on page load
+
+### API Authentication
+
+Cap Desktop uses API keys:
+- Generated per user in database
+- Sent as `Authorization: Bearer {token}` header
+- Validated on each API request
+- Can be revoked in user settings
+
+## Database Schema
+
+### Entity Relationships
+
+```
+users (1) ----< (many) videos
+  |                        |
+  |                        |
+  (1)                    (1)
+  |                        |
+  v                        v
+(many)                  (many)
+api_keys              comments
+```
+
+### Key Relationships
+
+- One user can have many videos
+- One user can have many API keys
+- One video can have many comments
+- One video can have many share links
+- Comments belong to both a user and a video
+
+## Networking
+
+### Docker Compose Networking
+
+All services run on a bridge network: `cap-network`
+
+**Internal DNS**:
+- `cap-web` - Accessible at `cap-web:3000` within network
+- `mysql` - Accessible at `mysql:3306`
+- `minio` - Accessible at `minio:9000`
+- `media-server` - Accessible at `media-server:3456`
+
+**External Access**:
+- Only Cap Web (port 3000) and MinIO (ports 9000, 9001) are exposed to host
+
+### Production Networking
+
+```
+Internet
+   |
+   v
+Reverse Proxy (Nginx/Caddy/Traefik)
+   |-- HTTPS (443) --> Cap Web (3000)
+   |-- HTTPS (443) --> MinIO (9000) [as s3.yourdomain.com]
+   |
+Docker Network (Internal)
+   |-- MySQL (3306)
+   |-- Media Server (3456)
+```
+
+## Data Flow
+
+### Write Operations
+
+1. **User Action** → Cap Web API
+2. **Cap Web** → MySQL (metadata)
+3. **Cap Web/Desktop** → S3 (files)
+4. **Media Server** → S3 (processed files)
+
+### Read Operations
+
+1. **Browser** → Cap Web (page HTML)
+2. **Browser** → S3 (video streaming)
+3. **Cap Web** → MySQL (metadata)
+
+## Scalability Considerations
+
+### Bottlenecks
+
+<Warning>
+  Default single-server deployment has these limitations:
+</Warning>
+
+1. **Cap Web**: Single instance, can't handle high concurrent requests
+2. **MySQL**: Single instance, no read replicas
+3. **Media Server**: Synchronous processing, one video at a time
+4. **S3 (MinIO)**: Limited to server disk I/O
+
+### Scaling Strategies
+
+See [Scaling Guide](/self-hosting/scaling) for:
+- Horizontal scaling of Cap Web
+- Database read replicas
+- Distributed media processing
+- CDN for S3 delivery
+
+## Security Architecture
+
+### Secrets Management
+
+Sensitive data protection:
+
+1. **Environment Variables**: Secrets loaded from `.env`, never committed to git
+2. **Database Encryption**: `DATABASE_ENCRYPTION_KEY` encrypts sensitive fields (AWS keys, OAuth tokens)
+3. **Session Secrets**: `NEXTAUTH_SECRET` signs session cookies
+4. **Webhook Auth**: `MEDIA_SERVER_WEBHOOK_SECRET` validates media server callbacks
+
+### Network Security
+
+- **TLS/SSL**: All external communication over HTTPS
+- **Internal Network**: Services communicate over Docker network (encrypted in production)
+- **Firewall**: Only ports 80, 443 exposed (reverse proxy)
+
+### Data Security
+
+- **SQL Injection**: Prevented by Drizzle ORM (parameterized queries)
+- **XSS**: React escapes output by default
+- **CSRF**: NextAuth includes CSRF tokens
+- **File Upload**: Validated file types, size limits
+
+## Monitoring Points
+
+### Application Logs
+
+```bash
+# Cap Web
+docker compose logs cap-web -f
+
+# Media Server  
+docker compose logs media-server -f
+
+# All services
+docker compose logs -f
+```
+
+### Health Checks
+
+Each service has health check endpoints:
+
+- **Cap Web**: `http://localhost:3000/` (returns 200 if healthy)
+- **Media Server**: `http://localhost:3456/health`
+- **MySQL**: `mysqladmin ping`
+- **MinIO**: `mc ready local`
+
+### Metrics (Optional)
+
+With Tinybird configured:
+- Page views
+- Video plays
+- User signups
+- API usage
+
+## Technology Choices
+
+### Why Next.js?
+
+- Server-side rendering for share pages (SEO)
+- API routes for backend logic
+- React for interactive UI
+- Excellent TypeScript support
+- Vercel deployment option
+
+### Why MySQL?
+
+- Mature, reliable relational database
+- Excellent JSON support (for metadata)
+- Great ORM support (Drizzle)
+- Wide hosting availability
+- PlanetScale compatibility (serverless option)
+
+### Why S3 (MinIO)?
+
+- Industry standard object storage
+- Excellent SDKs and tools
+- Easy migration between providers
+- Built-in CDN support (AWS S3 + CloudFront)
+- Cost-effective at scale
+
+### Why FFmpeg?
+
+- Industry standard for video processing
+- Supports all video formats
+- Fast, efficient encoding
+- Extensive codec support
+- Battle-tested and reliable
+
+## Development vs Production
+
+### Development
+
+- Default docker-compose.yml with placeholder secrets
+- MinIO for local S3 storage
+- No reverse proxy needed
+- Hot reload enabled
+- Detailed logging
+
+### Production
+
+- Custom `.env` with secure secrets
+- External S3 (AWS, Cloudflare R2, etc.)
+- Reverse proxy with SSL
+- Optimized builds
+- Structured logging
+- Health checks and monitoring
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Scaling" icon="chart-line" href="/self-hosting/scaling">
+    Scale Cap for production workloads
+  </Card>
+  <Card title="Environment Variables" icon="gear" href="/self-hosting/environment-variables">
+    Configure all components
+  </Card>
+  <Card title="Troubleshooting" icon="wrench" href="/self-hosting/troubleshooting">
+    Debug architecture issues
+  </Card>
+  <Card title="Docker Compose" icon="docker" href="/self-hosting/docker-compose">
+    Deploy the architecture
+  </Card>
+</CardGroup>

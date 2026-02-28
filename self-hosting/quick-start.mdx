@@ -1,0 +1,208 @@
+---
+title: "Quick Start"
+description: "Get Cap running on your server in under 5 minutes"
+---
+
+This guide will get Cap running on your local machine or server using Docker Compose in just one command.
+
+## Prerequisites
+
+- Docker 24.0+ and Docker Compose 2.0+ installed
+- At least 4GB RAM available
+- Ports 3000 and 9000 available
+
+## One-Command Installation
+
+<Steps>
+  <Step title="Clone and Start">
+    Run this single command to clone Cap and start all services:
+
+    ```bash
+    git clone https://github.com/CapSoftware/Cap.git && cd Cap && docker compose up -d
+    ```
+
+    This will:
+    - Clone the Cap repository
+    - Pull pre-built Docker images from GitHub Container Registry
+    - Start Cap Web, Media Server, MySQL, and MinIO
+    - Create necessary volumes for data persistence
+  </Step>
+
+  <Step title="Access Cap">
+    Once the containers are running, Cap will be available at:
+
+    ```
+    http://localhost:3000
+    ```
+
+    Open this URL in your browser to access Cap.
+  </Step>
+
+  <Step title="Get Login Link">
+    Since email is not configured by default, login links appear in the logs:
+
+    ```bash
+    docker compose logs cap-web -f
+    ```
+
+    Look for output like:
+
+    ```
+    Login link: http://localhost:3000/api/auth/callback/email?token=...
+    ```
+
+    Copy this URL and paste it into your browser to log in.
+  </Step>
+</Steps>
+
+<Note>
+  The default configuration uses placeholder passwords suitable for local development only. For production deployments, see [Production Configuration](#production-configuration) below.
+</Note>
+
+## Verify Installation
+
+Check that all services are running:
+
+```bash
+docker compose ps
+```
+
+You should see:
+
+```
+NAME                 STATUS
+cap-web              Up (healthy)
+cap-media-server     Up (healthy)
+cap-mysql            Up (healthy)
+cap-minio            Up (healthy)
+cap-minio-setup      Exited (0)
+```
+
+<Accordion title="Troubleshooting: Services not healthy">
+  If services show as unhealthy:
+
+  1. Check logs: `docker compose logs [service-name]`
+  2. Wait 60 seconds for health checks to pass
+  3. Restart if needed: `docker compose restart`
+  4. See [Troubleshooting](/self-hosting/troubleshooting) for more help
+</Accordion>
+
+## Test Video Upload
+
+<Steps>
+  <Step title="Connect Cap Desktop">
+    1. Download [Cap Desktop](https://cap.so/download)
+    2. Open Settings
+    3. Set **Cap Server URL** to `http://localhost:3000`
+  </Step>
+
+  <Step title="Record and Upload">
+    1. Record a short test video
+    2. Click **Share**
+    3. Video will upload to your local Cap instance
+  </Step>
+
+  <Step title="Verify Playback">
+    Open the share link in your browser to verify the video plays correctly.
+  </Step>
+</Steps>
+
+## Production Configuration
+
+The default setup is fine for testing, but production deployments require additional configuration.
+
+<Warning>
+  **Critical for Production**: The default `docker-compose.yml` contains placeholder secrets that are publicly visible in the GitHub repository. You must generate unique secrets before exposing your instance to the internet.
+</Warning>
+
+### Generate Secrets
+
+Run this command three times to generate secure secrets:
+
+```bash
+openssl rand -hex 32
+```
+
+Use the output for:
+- `NEXTAUTH_SECRET`
+- `DATABASE_ENCRYPTION_KEY`
+- `MEDIA_SERVER_WEBHOOK_SECRET`
+
+### Create .env File
+
+Create a `.env` file in the Cap directory:
+
+```bash .env
+# Required for Production
+CAP_URL=https://cap.yourdomain.com
+S3_PUBLIC_URL=https://s3.yourdomain.com
+
+# Security (generate with: openssl rand -hex 32)
+NEXTAUTH_SECRET=your-generated-secret-here
+DATABASE_ENCRYPTION_KEY=your-generated-key-here
+MEDIA_SERVER_WEBHOOK_SECRET=your-generated-secret-here
+
+# Database
+MYSQL_PASSWORD=your-secure-mysql-password
+MYSQL_ROOT_PASSWORD=your-secure-root-password
+
+# Storage
+MINIO_ROOT_USER=capadmin
+MINIO_ROOT_PASSWORD=your-secure-minio-password
+
+# Email (optional but recommended)
+RESEND_API_KEY=re_xxxxx
+RESEND_FROM_DOMAIN=yourdomain.com
+```
+
+### Restart with New Configuration
+
+```bash
+docker compose down
+docker compose up -d
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Email Setup" icon="envelope" href="/self-hosting/email-setup">
+    Configure Resend to send login emails
+  </Card>
+  <Card title="SSL/HTTPS" icon="lock" href="/self-hosting/ssl-https">
+    Set up a reverse proxy with SSL certificates
+  </Card>
+  <Card title="S3 Storage" icon="database" href="/self-hosting/s3-storage">
+    Use AWS S3 or other S3 providers
+  </Card>
+  <Card title="Environment Variables" icon="gear" href="/self-hosting/environment-variables">
+    Complete configuration reference
+  </Card>
+</CardGroup>
+
+## Common Commands
+
+```bash
+# View logs
+docker compose logs -f
+
+# View logs for specific service
+docker compose logs cap-web -f
+
+# Restart services
+docker compose restart
+
+# Stop Cap
+docker compose down
+
+# Stop and remove all data
+docker compose down -v
+
+# Update to latest version
+git pull
+docker compose pull
+docker compose up -d
+```
+
+<Warning>
+  The command `docker compose down -v` will delete all data including videos, users, and database content. Only use this if you want to start completely fresh.
+</Warning>

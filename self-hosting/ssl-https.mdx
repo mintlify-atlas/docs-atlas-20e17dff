@@ -1,0 +1,609 @@
+---
+title: "SSL/HTTPS Configuration"
+description: "Secure your Cap deployment with SSL certificates and HTTPS"
+---
+
+Production deployments require HTTPS for security and browser compatibility. This guide covers SSL/TLS setup using popular reverse proxies.
+
+## Why HTTPS is Required
+
+<CardGroup cols={2}>
+  <Card title="Security" icon="shield">
+    Encrypts data between users and your server
+  </Card>
+  <Card title="Browser Features" icon="browser">
+    Screen recording APIs require HTTPS
+  </Card>
+  <Card title="Authentication" icon="key">
+    OAuth providers require HTTPS redirects
+  </Card>
+  <Card title="SEO & Trust" icon="check">
+    Better search rankings and user trust
+  </Card>
+</CardGroup>
+
+<Warning>
+  Without HTTPS, Cap Desktop won't be able to upload videos, and web features may not work properly.
+</Warning>
+
+## Prerequisites
+
+- Domain name pointed to your server
+- Ports 80 and 443 open on your firewall
+- Cap running on localhost (default port 3000)
+
+## Reverse Proxy Options
+
+Choose a reverse proxy:
+
+| Proxy | Difficulty | Auto SSL | Best For |
+|-------|------------|----------|----------|
+| **Caddy** | Easiest | Yes | Beginners, simple setups |
+| **Traefik** | Easy | Yes | Docker deployments |
+| **Nginx** | Medium | No | Advanced users, high performance |
+| **Coolify** | Easiest | Yes | All-in-one PaaS |
+
+## Caddy (Recommended for Beginners)
+
+Caddy automatically obtains and renews SSL certificates from Let's Encrypt.
+
+### Installation
+
+<Tabs>
+  <Tab title="Ubuntu/Debian">
+    ```bash
+    sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https
+    curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+    curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
+    sudo apt update
+    sudo apt install caddy
+    ```
+  </Tab>
+
+  <Tab title="Docker">
+    Add Caddy to your `docker-compose.yml`:
+
+    ```yaml
+    services:
+      caddy:
+        image: caddy:2-alpine
+        restart: unless-stopped
+        ports:
+          - "80:80"
+          - "443:443"
+        volumes:
+          - ./Caddyfile:/etc/caddy/Caddyfile
+          - caddy-data:/data
+          - caddy-config:/config
+        networks:
+          - cap-network
+
+    volumes:
+      caddy-data:
+      caddy-config:
+    ```
+  </Tab>
+</Tabs>
+
+### Caddyfile Configuration
+
+Create `/etc/caddy/Caddyfile` (or `./Caddyfile` for Docker):
+
+```caddy Caddyfile
+# Main Cap application
+cap.yourdomain.com {
+    reverse_proxy localhost:3000
+}
+
+# MinIO S3 storage
+s3.yourdomain.com {
+    reverse_proxy localhost:9000
+}
+
+# Optional: MinIO Console
+minio.yourdomain.com {
+    reverse_proxy localhost:9001
+}
+```
+
+<Note>
+  Replace `yourdomain.com` with your actual domain.
+</Note>
+
+### Start Caddy
+
+<Tabs>
+  <Tab title="System Service">
+    ```bash
+    sudo systemctl enable caddy
+    sudo systemctl start caddy
+    sudo systemctl status caddy
+    ```
+  </Tab>
+
+  <Tab title="Docker">
+    ```bash
+    docker compose up -d caddy
+    ```
+  </Tab>
+</Tabs>
+
+### Verify SSL
+
+1. Visit `https://cap.yourdomain.com`
+2. Check for padlock icon in browser
+3. Certificate should be issued by "Let's Encrypt"
+
+Caddy automatically:
+- Obtains SSL certificates
+- Renews before expiration
+- Redirects HTTP to HTTPS
+
+## Nginx with Certbot
+
+Nginx is high-performance but requires manual SSL setup.
+
+### Installation
+
+```bash
+# Install Nginx
+sudo apt update
+sudo apt install nginx
+
+# Install Certbot for Let's Encrypt
+sudo apt install certbot python3-certbot-nginx
+```
+
+### Nginx Configuration
+
+Create `/etc/nginx/sites-available/cap`:
+
+```nginx /etc/nginx/sites-available/cap
+server {
+    listen 80;
+    server_name cap.yourdomain.com;
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+
+Enable the site:
+
+```bash
+sudo ln -s /etc/nginx/sites-available/cap /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+### Obtain SSL Certificate
+
+```bash
+sudo certbot --nginx -d cap.yourdomain.com -d s3.yourdomain.com
+```
+
+Certbot will:
+- Verify domain ownership
+- Obtain certificate
+- Automatically configure Nginx for HTTPS
+- Set up auto-renewal
+
+### MinIO SSL Configuration
+
+Add to `/etc/nginx/sites-available/cap`:
+
+```nginx
+server {
+    listen 80;
+    server_name s3.yourdomain.com;
+
+    location / {
+        proxy_pass http://localhost:9000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Required for large video uploads
+        client_max_body_size 0;
+        proxy_request_buffering off;
+    }
+}
+```
+
+Reload and certify:
+
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
+sudo certbot --nginx -d s3.yourdomain.com
+```
+
+## Traefik (Docker)
+
+Traefik is ideal for Docker deployments with automatic SSL.
+
+### docker-compose.yml with Traefik
+
+```yaml docker-compose.yml
+services:
+  traefik:
+    image: traefik:v2.10
+    command:
+      - "--api.insecure=false"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.email=admin@yourdomain.com"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./letsencrypt:/letsencrypt"
+    networks:
+      - cap-network
+
+  cap-web:
+    image: ghcr.io/capsoftware/cap-web:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cap.rule=Host(`cap.yourdomain.com`)"
+      - "traefik.http.routers.cap.entrypoints=websecure"
+      - "traefik.http.routers.cap.tls.certresolver=letsencrypt"
+      - "traefik.http.services.cap.loadbalancer.server.port=3000"
+      # HTTP to HTTPS redirect
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.routers.cap-http.rule=Host(`cap.yourdomain.com`)"
+      - "traefik.http.routers.cap-http.entrypoints=web"
+      - "traefik.http.routers.cap-http.middlewares=redirect-to-https"
+    # ... rest of cap-web config
+
+  minio:
+    image: minio/minio:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.minio.rule=Host(`s3.yourdomain.com`)"
+      - "traefik.http.routers.minio.entrypoints=websecure"
+      - "traefik.http.routers.minio.tls.certresolver=letsencrypt"
+      - "traefik.http.services.minio.loadbalancer.server.port=9000"
+    # ... rest of minio config
+```
+
+Start:
+
+```bash
+mkdir letsencrypt
+touch letsencrypt/acme.json
+chmod 600 letsencrypt/acme.json
+docker compose up -d
+```
+
+Traefik automatically obtains and renews certificates.
+
+## Update Cap Configuration
+
+After setting up HTTPS, update Cap's environment variables:
+
+```bash .env
+WEB_URL=https://cap.yourdomain.com
+NEXTAUTH_URL=https://cap.yourdomain.com
+S3_PUBLIC_ENDPOINT=https://s3.yourdomain.com
+```
+
+Restart Cap:
+
+```bash
+docker compose restart cap-web
+```
+
+## DNS Configuration
+
+Point your domains to your server:
+
+```
+# A records
+cap.yourdomain.com    A    Your-Server-IP
+s3.yourdomain.com     A    Your-Server-IP
+```
+
+Or use CNAME:
+
+```
+# CNAME records (if using subdomain)
+cap     CNAME    yourdomain.com
+s3      CNAME    yourdomain.com
+```
+
+Verify DNS propagation:
+
+```bash
+dig cap.yourdomain.com
+nslookup s3.yourdomain.com
+```
+
+## Firewall Configuration
+
+Ensure ports are open:
+
+<Tabs>
+  <Tab title="UFW (Ubuntu)">
+    ```bash
+    sudo ufw allow 80/tcp
+    sudo ufw allow 443/tcp
+    sudo ufw enable
+    sudo ufw status
+    ```
+  </Tab>
+
+  <Tab title="firewalld (CentOS/RHEL)">
+    ```bash
+    sudo firewall-cmd --permanent --add-service=http
+    sudo firewall-cmd --permanent --add-service=https
+    sudo firewall-cmd --reload
+    ```
+  </Tab>
+
+  <Tab title="Cloud Providers">
+    Configure security groups:
+
+    - **AWS**: Edit security group, allow inbound 80 and 443
+    - **DigitalOcean**: Firewall settings, allow HTTP and HTTPS
+    - **Hetzner**: Cloud console, add firewall rules
+  </Tab>
+</Tabs>
+
+## Testing SSL
+
+### Browser Test
+
+1. Visit `https://cap.yourdomain.com`
+2. Click padlock icon
+3. View certificate:
+   - Issued to: `cap.yourdomain.com`
+   - Issued by: `Let's Encrypt`
+   - Valid until: (90 days from issue)
+
+### SSL Labs Test
+
+Test your SSL configuration:
+
+1. Go to [SSL Labs](https://www.ssllabs.com/ssltest/)
+2. Enter: `cap.yourdomain.com`
+3. Wait for analysis
+4. Aim for **A** or **A+** grade
+
+### Command Line Test
+
+```bash
+# Check certificate
+openssl s_client -connect cap.yourdomain.com:443 -servername cap.yourdomain.com
+
+# Verify redirect
+curl -I http://cap.yourdomain.com
+# Should return: Location: https://cap.yourdomain.com
+```
+
+## Certificate Renewal
+
+### Caddy
+
+Automatic. No action needed.
+
+### Certbot (Nginx)
+
+Test auto-renewal:
+
+```bash
+sudo certbot renew --dry-run
+```
+
+Renewal runs automatically via cron:
+
+```bash
+# Check renewal timer
+sudo systemctl status certbot.timer
+```
+
+Manual renewal if needed:
+
+```bash
+sudo certbot renew
+sudo systemctl reload nginx
+```
+
+### Traefik
+
+Automatic. Certificates renew 30 days before expiration.
+
+## Advanced Configuration
+
+### HTTP/2 Support
+
+**Caddy**: Enabled by default
+
+**Nginx**: Add to server block:
+
+```nginx
+listen 443 ssl http2;
+```
+
+**Traefik**: Enabled by default
+
+### Security Headers
+
+**Caddy**:
+
+```caddy Caddyfile
+cap.yourdomain.com {
+    reverse_proxy localhost:3000
+
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+}
+```
+
+**Nginx**:
+
+```nginx
+add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+add_header X-Frame-Options "SAMEORIGIN" always;
+add_header X-Content-Type-Options "nosniff" always;
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+```
+
+### WebSocket Support
+
+Required for real-time features:
+
+**Nginx**:
+
+```nginx
+proxy_set_header Upgrade $http_upgrade;
+proxy_set_header Connection "upgrade";
+```
+
+**Caddy**: Handled automatically
+
+**Traefik**: Handled automatically
+
+## Troubleshooting
+
+### Certificate Not Obtained
+
+<AccordionGroup>
+  <Accordion title="DNS Not Propagated">
+    Wait for DNS changes to propagate (up to 48 hours, usually minutes).
+
+    Check with:
+    ```bash
+    dig cap.yourdomain.com
+    ```
+  </Accordion>
+
+  <Accordion title="Port 80 Not Open">
+    Let's Encrypt requires port 80 for HTTP challenge:
+
+    ```bash
+    sudo ufw allow 80
+    # Or check cloud provider firewall
+    ```
+  </Accordion>
+
+  <Accordion title="Rate Limit Hit">
+    Let's Encrypt limits:
+    - 50 certificates per domain per week
+    - 5 failed validations per hour
+
+    Wait 1 hour or use staging:
+    ```bash
+    sudo certbot --nginx --staging -d cap.yourdomain.com
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Mixed Content Warnings
+
+Browser shows: "This page includes insecure resources"
+
+**Fix**:
+
+1. Ensure `S3_PUBLIC_ENDPOINT` uses HTTPS:
+   ```bash
+   S3_PUBLIC_ENDPOINT=https://s3.yourdomain.com
+   ```
+
+2. Check MinIO has SSL configured
+
+3. Update `WEB_URL` and `NEXTAUTH_URL` to HTTPS
+
+### HTTPS Works but HTTP Doesn't Redirect
+
+**Caddy**: Redirects automatically
+
+**Nginx**: Add redirect:
+
+```nginx
+server {
+    listen 80;
+    server_name cap.yourdomain.com;
+    return 301 https://$server_name$request_uri;
+}
+```
+
+**Traefik**: Add redirect middleware (see example above)
+
+### Certificate Expires
+
+If auto-renewal fails:
+
+1. Check renewal logs:
+   ```bash
+   sudo cat /var/log/letsencrypt/letsencrypt.log
+   ```
+
+2. Manually renew:
+   ```bash
+   sudo certbot renew --force-renewal
+   ```
+
+3. Restart web server:
+   ```bash
+   sudo systemctl restart nginx
+   # or
+   sudo systemctl restart caddy
+   ```
+
+## Railway/Coolify SSL
+
+### Railway
+
+SSL is automatic:
+
+1. Add custom domain in Railway dashboard
+2. Configure DNS (CNAME)
+3. SSL certificate provisioned automatically
+
+No manual configuration needed.
+
+### Coolify
+
+SSL via Traefik (automatic):
+
+1. Add domain in Coolify service settings
+2. Configure DNS
+3. Coolify's Traefik handles SSL automatically
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Email Setup" icon="envelope" href="/self-hosting/email-setup">
+    Configure email with HTTPS URLs
+  </Card>
+  <Card title="Architecture" icon="diagram-project" href="/self-hosting/architecture">
+    Understand the deployment architecture
+  </Card>
+  <Card title="Scaling" icon="chart-line" href="/self-hosting/scaling">
+    Scale with load balancers
+  </Card>
+  <Card title="Troubleshooting" icon="wrench" href="/self-hosting/troubleshooting">
+    Debug SSL issues
+  </Card>
+</CardGroup>

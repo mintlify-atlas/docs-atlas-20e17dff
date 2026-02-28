@@ -1,0 +1,471 @@
+---
+title: "Email Setup"
+description: "Configure email delivery for authentication and notifications"
+---
+
+Cap uses email for passwordless authentication. Without email configured, login links appear in server logs. This guide shows how to set up email delivery using Resend.
+
+## Why Email Configuration Matters
+
+Without email:
+- Users must access server logs to get login links
+- No password reset emails
+- No notification emails
+- Poor user experience
+
+With email:
+- One-click login from inbox
+- Professional user experience
+- Notification support
+- Production-ready authentication
+
+## Resend (Recommended)
+
+Resend is Cap's officially supported email provider.
+
+### Why Resend?
+
+- Simple API and setup
+- Generous free tier (3,000 emails/month)
+- Excellent deliverability
+- Built for developers
+- No credit card required for trial
+
+### Setup Steps
+
+<Steps>
+  <Step title="Create Resend Account">
+    1. Go to [resend.com](https://resend.com)
+    2. Click **Sign Up**
+    3. Verify your email address
+    4. Complete onboarding
+  </Step>
+
+  <Step title="Add and Verify Domain">
+    1. Go to [Domains](https://resend.com/domains) in Resend dashboard
+    2. Click **Add Domain**
+    3. Enter your domain (e.g., `yourdomain.com`)
+    4. Add the DNS records shown:
+
+    **Required DNS Records**:
+    ```
+    Type: TXT
+    Name: @
+    Value: resend-verification=xxxxx
+
+    Type: MX
+    Name: @
+    Priority: 10
+    Value: feedback-smtp.us-east-1.amazonses.com
+
+    Type: TXT
+    Name: @
+    Value: v=spf1 include:amazonses.com ~all
+
+    Type: TXT
+    Name: resend._domainkey
+    Value: p=MIGfMA0GCSqGSIb3DQEBA...
+    ```
+
+    <Note>
+      DNS changes can take up to 48 hours to propagate, but usually complete within minutes.
+    </Note>
+  </Step>
+
+  <Step title="Verify Domain">
+    1. After adding DNS records, click **Verify** in Resend
+    2. Wait for verification to complete
+    3. Status should show **Verified**
+
+    <Accordion title="Verification Failed?">
+      - Wait 5-10 minutes and try again
+      - Use [DNS checker](https://dnschecker.org) to verify records propagated
+      - Ensure records match exactly (no extra quotes or spaces)
+      - Check with your DNS provider's support
+    </Accordion>
+  </Step>
+
+  <Step title="Create API Key">
+    1. Go to [API Keys](https://resend.com/api-keys)
+    2. Click **Create API Key**
+    3. Configure:
+       - **Name**: Cap Production
+       - **Permission**: Full Access (or Sending Access)
+       - **Domain**: Select your verified domain
+    4. Copy the API key (starts with `re_`)
+
+    <Warning>
+      Save the API key immediately. Resend only shows it once.
+    </Warning>
+  </Step>
+
+  <Step title="Configure Cap">
+    Add these environment variables to your `.env` file:
+
+    ```bash .env
+    RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxx
+    RESEND_FROM_DOMAIN=yourdomain.com
+    ```
+
+    The from address will be: `noreply@yourdomain.com`
+  </Step>
+
+  <Step title="Restart Cap">
+    Apply the new configuration:
+
+    <Tabs>
+      <Tab title="Docker Compose">
+        ```bash
+        docker compose down
+        docker compose up -d
+        ```
+      </Tab>
+      <Tab title="Railway">
+        Railway automatically redeploys when you update environment variables.
+      </Tab>
+      <Tab title="Coolify">
+        Click **Redeploy** in the Coolify UI.
+      </Tab>
+    </Tabs>
+  </Step>
+
+  <Step title="Test Email">
+    1. Go to your Cap instance
+    2. Click **Sign In**
+    3. Enter your email address
+    4. Check your inbox for the login email
+
+    If you don't receive the email:
+    - Check spam folder
+    - Verify domain is verified in Resend
+    - Check Cap logs for errors: `docker compose logs cap-web`
+  </Step>
+</Steps>
+
+## Using a Subdomain
+
+If you can't add DNS records to your main domain, use a subdomain:
+
+<Steps>
+  <Step title="Create Subdomain">
+    Create a subdomain like `mail.yourdomain.com`
+  </Step>
+
+  <Step title="Add to Resend">
+    Add `mail.yourdomain.com` as a domain in Resend
+  </Step>
+
+  <Step title="Configure Cap">
+    ```bash .env
+    RESEND_FROM_DOMAIN=mail.yourdomain.com
+    ```
+
+    Emails will be sent from: `noreply@mail.yourdomain.com`
+  </Step>
+</Steps>
+
+## Custom From Address
+
+Change the sender name and email:
+
+<Note>
+  This requires code modification. Cap currently uses `noreply@` as the sender.
+</Note>
+
+To customize:
+
+1. Fork the Cap repository
+2. Edit `apps/web/app/api/auth/[...nextauth]/route.ts`
+3. Find the Resend email configuration
+4. Change `from` field:
+   ```typescript
+   from: `Cap <support@${process.env.RESEND_FROM_DOMAIN}>`
+   ```
+5. Rebuild and deploy
+
+## Email Template Customization
+
+Cap uses default NextAuth email templates. To customize:
+
+1. Create custom email templates
+2. Modify the NextAuth configuration in `apps/web/app/api/auth/[...nextauth]/route.ts`
+3. Add custom HTML/text templates
+
+See [NextAuth.js Email Provider docs](https://next-auth.js.org/providers/email) for details.
+
+## Alternative Email Providers
+
+While Resend is recommended, Cap can work with other providers using SMTP.
+
+### Using SMTP
+
+<Warning>
+  SMTP support requires code modification. Cap's current codebase is designed for Resend's API.
+</Warning>
+
+To use SMTP providers (SendGrid, Mailgun, Postmark, etc.):
+
+1. Modify NextAuth configuration to use SMTP
+2. Update `apps/web/app/api/auth/[...nextauth]/route.ts`:
+
+   ```typescript
+   import { EmailProvider } from "next-auth/providers/email";
+
+   providers: [
+     EmailProvider({
+       server: {
+         host: process.env.SMTP_HOST,
+         port: Number(process.env.SMTP_PORT),
+         auth: {
+           user: process.env.SMTP_USER,
+           pass: process.env.SMTP_PASSWORD,
+         },
+       },
+       from: process.env.EMAIL_FROM,
+     }),
+   ]
+   ```
+
+3. Add environment variables:
+   ```bash .env
+   SMTP_HOST=smtp.sendgrid.net
+   SMTP_PORT=587
+   SMTP_USER=apikey
+   SMTP_PASSWORD=SG.xxxxxxxxx
+   EMAIL_FROM=noreply@yourdomain.com
+   ```
+
+## Monitoring Email Delivery
+
+### Resend Dashboard
+
+1. Go to [Resend Dashboard](https://resend.com/emails)
+2. View all sent emails
+3. Check delivery status:
+   - **Delivered** - Successfully delivered
+   - **Bounced** - Invalid email address
+   - **Complained** - Marked as spam
+   - **Queued** - Being processed
+
+### Cap Logs
+
+Check Cap logs for email sending:
+
+```bash
+docker compose logs cap-web | grep -i email
+```
+
+Successful email:
+```
+Email sent to user@example.com via Resend
+```
+
+Failed email:
+```
+Error sending email: Invalid API key
+```
+
+## Troubleshooting
+
+### No Email Received
+
+<AccordionGroup>
+  <Accordion title="Check Spam Folder">
+    Login emails might be filtered as spam initially. Mark as "Not Spam" to improve deliverability.
+  </Accordion>
+
+  <Accordion title="Verify Domain">
+    1. Go to Resend dashboard
+    2. Check domain status is **Verified**
+    3. Re-verify if needed
+  </Accordion>
+
+  <Accordion title="Check API Key">
+    ```bash
+    docker compose logs cap-web | grep -i "resend\|email"
+    ```
+
+    Look for authentication errors.
+  </Accordion>
+
+  <Accordion title="Test Resend API">
+    Test API key directly:
+
+    ```bash
+    curl -X POST 'https://api.resend.com/emails' \
+      -H 'Authorization: Bearer re_xxxxxxxxxxxx' \
+      -H 'Content-Type: application/json' \
+      -d '{
+        "from": "noreply@yourdomain.com",
+        "to": "your-email@example.com",
+        "subject": "Test Email",
+        "html": "<p>Test email from Resend</p>"
+      }'
+    ```
+
+    Successful response:
+    ```json
+    {"id":"49a3999c-0ce1-4ea6-ab68-afcd6dc2e794"}
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Emails Go to Spam
+
+<Steps>
+  <Step title="Verify SPF, DKIM, DMARC">
+    Ensure all DNS records are properly configured:
+
+    - **SPF**: Authorizes Resend to send from your domain
+    - **DKIM**: Cryptographic signature for authenticity
+    - **DMARC**: Policy for handling failed authentication
+
+    Check with [MXToolbox](https://mxtoolbox.com/SuperTool.aspx)
+  </Step>
+
+  <Step title="Warm Up Domain">
+    New domains have poor reputation. Gradually increase sending volume:
+
+    - Day 1: 10-20 emails
+    - Day 2: 50 emails
+    - Week 1: 100/day
+    - Week 2: 500/day
+    - After month: Full volume
+  </Step>
+
+  <Step title="Monitor Bounce Rate">
+    Keep bounce rate below 5%:
+
+    - Remove invalid email addresses
+    - Use double opt-in for signups
+    - Monitor Resend dashboard for bounces
+  </Step>
+
+  <Step title="Improve Content">
+    - Avoid spam trigger words
+    - Include unsubscribe link (for newsletters)
+    - Use plain text + HTML version
+    - Proper from name and email
+  </Step>
+</Steps>
+
+### Rate Limiting
+
+Resend free tier limits:
+- **3,000 emails/month**
+- **100 emails/day** (first month)
+
+If you hit limits:
+1. Check Resend dashboard for current usage
+2. Upgrade to paid plan ($20/month for 50,000 emails)
+3. Or implement email queue to spread sends
+
+### Invalid API Key Error
+
+```
+Error: Invalid API key
+```
+
+**Fix**:
+1. Verify `RESEND_API_KEY` in `.env` is correct
+2. Key should start with `re_`
+3. Ensure no extra spaces or quotes
+4. Create new API key if needed
+5. Restart Cap after changing
+
+## Production Best Practices
+
+### Security
+
+- **Never commit** API keys to git
+- Use environment variables only
+- Rotate API keys periodically
+- Use separate keys for staging/production
+- Enable 2FA on Resend account
+
+### Deliverability
+
+- Always verify your domain
+- Configure all DNS records (SPF, DKIM, DMARC)
+- Monitor bounce and complaint rates
+- Keep email list clean
+- Use descriptive from names
+- Include physical address in footer (legal requirement in some regions)
+
+### Monitoring
+
+- Set up Resend webhooks for delivery events
+- Monitor email sending in logs
+- Track bounce and complaint rates
+- Set up alerts for failed sends
+- Review Resend analytics monthly
+
+## Webhooks (Advanced)
+
+Receive real-time delivery notifications:
+
+<Steps>
+  <Step title="Create Webhook Endpoint">
+    Add to your Cap deployment (requires code modification):
+
+    ```typescript
+    // app/api/webhooks/resend/route.ts
+    export async function POST(req: Request) {
+      const event = await req.json();
+
+      switch (event.type) {
+        case 'email.delivered':
+          console.log('Email delivered:', event.data.email_id);
+          break;
+        case 'email.bounced':
+          console.log('Email bounced:', event.data.email_id);
+          break;
+      }
+
+      return new Response('OK', { status: 200 });
+    }
+    ```
+  </Step>
+
+  <Step title="Configure in Resend">
+    1. Go to [Webhooks](https://resend.com/webhooks) in Resend
+    2. Click **Add Webhook**
+    3. URL: `https://cap.yourdomain.com/api/webhooks/resend`
+    4. Select events: delivered, bounced, complained
+  </Step>
+</Steps>
+
+## Cost Estimation
+
+**Resend Pricing**:
+
+| Tier | Price | Emails/month | Best For |
+|------|-------|--------------|----------|
+| Free | $0 | 3,000 | Testing, small teams |
+| Pro | $20 | 50,000 | Small businesses |
+| Business | $80 | 250,000 | Growing companies |
+| Enterprise | Custom | Custom | Large deployments |
+
+**Calculating your needs**:
+
+- Login emails: ~1-3 per user per month
+- 100 users = ~300 emails/month
+- 1,000 users = ~3,000 emails/month (Free tier)
+- 10,000 users = ~30,000 emails/month (Pro tier)
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Environment Variables" icon="gear" href="/self-hosting/environment-variables">
+    Complete email configuration reference
+  </Card>
+  <Card title="SSL/HTTPS" icon="lock" href="/self-hosting/ssl-https">
+    Secure your deployment
+  </Card>
+  <Card title="Troubleshooting" icon="wrench" href="/self-hosting/troubleshooting">
+    Debug email issues
+  </Card>
+  <Card title="Scaling" icon="chart-line" href="/self-hosting/scaling">
+    Scale email for production
+  </Card>
+</CardGroup>

@@ -1,0 +1,215 @@
+---
+title: Monorepo Architecture
+description: Understanding Cap's codebase structure and organization
+---
+
+## Overview
+
+Cap uses a Turborepo-powered monorepo with a combination of TypeScript, React, Rust, and modern web technologies.
+
+## Technology Stack
+
+- **Frontend:** React, Next.js, SolidJS, TailwindCSS
+- **Backend:** Rust, Node.js
+- **Desktop:** Tauri v2
+- **Database:** MySQL with Drizzle ORM
+- **Storage:** S3-compatible (MinIO for local development)
+- **Build System:** Turborepo, pnpm workspaces
+
+## Repository Structure
+
+### Apps
+
+#### `apps/desktop`
+The desktop application built with:
+- **Framework:** Tauri v2 (Rust)
+- **Frontend:** SolidStart
+- **Purpose:** Native screen recording and video capture
+
+#### `apps/web`
+The web application built with:
+- **Framework:** Next.js 15
+- **Purpose:** Video management, sharing, and playback
+- **API Routes:** Built with `@effect/platform` HttpApi
+
+#### `apps/cli`
+Command-line interface built with:
+- **Language:** Rust
+- **CLI Framework:** Clap
+- **Purpose:** Record and export videos from the terminal
+
+### Packages
+
+#### `packages/database` (`@cap/database`)
+Shared database layer:
+- **ORM:** Drizzle
+- **Database:** MySQL
+- **Schema:** Users, videos, comments, organizations, folders
+- **Scripts:**
+  - `db:generate` - Generate migrations
+  - `db:push` - Push schema changes
+  - `db:studio` - Open Drizzle Studio
+
+#### `packages/ui` (`@cap/ui`)
+React component library:
+- **Components:** Button, Card, Dialog, Dropdown, Table, Input, etc.
+- **Styling:** TailwindCSS
+- **UI Framework:** Radix UI
+- **Exports:** `@cap/ui`, `@cap/ui/tailwind`, `@cap/ui/style`
+
+#### `packages/ui-solid` (`@cap/ui-solid`)
+SolidJS component library for desktop:
+- **Components:** Button, ProgressCircle, SwitchTab
+- **Styling:** TailwindCSS
+- **UI Framework:** Kobalte
+- **Exports:** `@cap/ui-solid`, `@cap/ui-solid/tailwind`
+
+#### `packages/utils` (`@cap/utils`)
+Shared utility functions and helpers
+
+#### `packages/web-api-contract`
+API contract definitions using ts-rest:
+- Desktop endpoints
+- Video endpoints
+- Notification endpoints
+- Type-safe API contracts
+
+#### `packages/web-backend`
+Backend services and business logic
+
+#### `packages/web-domain`
+Domain models and types
+
+### Crates (Rust)
+
+The `crates/` directory contains Rust libraries for media processing:
+
+#### Core Crates
+- `cap-recording` - Screen and audio recording
+- `cap-export` - Video export functionality
+- `cap-rendering` - Video rendering pipeline
+- `cap-editor` - Video editing capabilities
+- `cap-media` - Media utilities
+- `cap-project` - Project file management
+
+#### Camera Crates
+- `cap-camera` - Camera abstraction
+- `camera-avfoundation` - macOS camera support
+- `camera-mediafoundation` - Windows camera support
+- `camera-directshow` - DirectShow camera support
+- `camera-windows` - Windows camera utilities
+
+#### Encoding Crates
+- `enc-avfoundation` - macOS hardware encoding
+- `enc-mediafoundation` - Windows hardware encoding
+- `enc-ffmpeg` - FFmpeg encoding
+- `enc-gif` - GIF export
+
+#### Screen Capture
+- `scap-targets` - Screen capture target detection
+- `cursor-capture` - Cursor overlay capture
+- `cursor-info` - Cursor information
+
+## Build System
+
+### Turborepo Configuration
+
+The monorepo uses Turborepo for efficient builds and caching:
+
+```json
+{
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "dist/**"]
+    },
+    "dev": {
+      "dependsOn": ["db:push"],
+      "persistent": true
+    }
+  }
+}
+```
+
+### Key Scripts
+
+```bash
+pnpm build
+pnpm dev
+pnpm dev:desktop
+pnpm dev:web
+pnpm lint
+pnpm format
+pnpm typecheck
+pnpm tauri:build
+```
+
+## Naming Conventions
+
+<AccordionGroup>
+  <Accordion title="File Naming">
+    - **TypeScript/React:** kebab-case (`user-menu.tsx`)
+    - **Components:** PascalCase (`UserMenu`)
+    - **Rust modules:** snake_case
+    - **Rust crates:** kebab-case
+  </Accordion>
+  
+  <Accordion title="Code Style">
+    - **TypeScript:** 2-space indentation
+    - **Formatter:** Biome (not Prettier)
+    - **Linter:** Biome + ESLint
+    - **Rust:** rustfmt + Clippy workspace lints
+  </Accordion>
+</AccordionGroup>
+
+## Effect.ts Integration
+
+Next.js API routes in `apps/web/app/api/*` use `@effect/platform`:
+
+```typescript
+import { HttpApi, HttpApiBuilder } from "@effect/platform";
+import { Effect, Layer } from "effect";
+
+const api = HttpApiBuilder.group(ApiClass, "group", (endpoints) =>
+  endpoints.endpoint(/* ... */)
+);
+
+const handler = apiToHandler(ApiLive);
+```
+
+## Auto-Generated Files
+
+<Warning>
+  **Never edit these auto-generated files:**
+  - `**/tauri.ts`
+  - `**/queries.ts`
+  - `apps/desktop/src-tauri/gen/**`
+</Warning>
+
+## Database Workflow
+
+Always follow this order:
+
+1. Modify schema in `packages/database/schema.ts`
+2. Run `pnpm db:generate` to create migrations
+3. Run `pnpm db:push` to apply changes
+4. Run `pnpm db:studio` to view changes
+
+## License Structure
+
+Cap uses multiple licenses:
+
+- **Camera & Screen Capture Crates** (`cap-camera*`, `scap-*`): MIT License
+- **Third-party components:** Original licenses
+- **Everything else:** AGPLv3
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Setup" icon="wrench" href="/development/setup">
+    Set up your development environment
+  </Card>
+  <Card title="Contributing" icon="code-pull-request" href="/development/contributing">
+    Learn how to contribute
+  </Card>
+</CardGroup>

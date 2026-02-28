@@ -1,0 +1,268 @@
+---
+title: Support & Community
+description: Get help and connect with the Cap community
+---
+
+## Community Support
+
+### Discord
+
+Join our active Discord community to:
+- Get help from other Cap users
+- Suggest new features
+- Share your recordings and use cases
+- Connect with the development team
+
+<Card title="Join Cap Discord" icon="discord" href="https://discord.com/invite/y8gdQ3WRN3">
+  Get instant help and connect with the community
+</Card>
+
+### GitHub Discussions
+
+For longer-form discussions, feature requests, and community Q&A:
+
+<Card title="GitHub Discussions" icon="github" href="https://github.com/CapSoftware/Cap/discussions">
+  Share ideas and discuss the future of Cap
+</Card>
+
+## Report Issues
+
+### Bug Reports
+
+Found a bug? Help us improve Cap by reporting it:
+
+<Card title="Report a Bug" icon="bug" href="https://github.com/CapSoftware/Cap/issues/new">
+  Create a detailed bug report on GitHub
+</Card>
+
+**When reporting bugs, please include:**
+- Operating system and version (e.g., macOS 14.0, Windows 11)
+- Cap version (Desktop app version or self-hosted commit)
+- Steps to reproduce the issue
+- Expected behavior vs actual behavior
+- Screenshots or screen recordings (use Cap to record the bug!)
+- Error messages from logs
+- Browser version (for web app issues)
+
+### Feature Requests
+
+Have an idea for a new feature? We'd love to hear it!
+
+The best place to suggest features is on Discord where you can discuss with the community and maintainers:
+
+<Card title="Suggest Features" icon="lightbulb" href="https://discord.com/invite/y8gdQ3WRN3">
+  Share your ideas on Discord
+</Card>
+
+## Contributing
+
+### Ways to Contribute
+
+Cap is open source and welcomes contributions:
+
+<CardGroup cols={2}>
+  <Card title="Code Contributions" icon="code">
+    Submit pull requests to fix bugs or add features
+  </Card>
+  <Card title="Documentation" icon="book">
+    Improve docs, write tutorials, or create guides
+  </Card>
+  <Card title="Testing" icon="flask">
+    Test new features and report issues
+  </Card>
+  <Card title="Translation" icon="language">
+    Help translate Cap to other languages
+  </Card>
+</CardGroup>
+
+### Bounty Program
+
+Earn money by contributing to Cap! We offer bounties for specific issues and features:
+
+<Card title="Open Bounties" icon="dollar-sign" href="https://console.algora.io/org/CapSoftware/bounties?status=open">
+  View paid issues and start contributing
+</Card>
+
+### Contributing Guide
+
+Before contributing code, please read our contributing guide:
+
+<Card title="Contributing Guide" icon="book-open" href="https://github.com/CapSoftware/Cap/blob/main/CONTRIBUTING.md">
+  Learn how to set up your development environment
+</Card>
+
+**Quick start for contributors:**
+
+1. Fork the repository
+2. Clone your fork locally
+3. Install dependencies:
+   ```bash
+   pnpm install
+   pnpm cap-setup
+   pnpm env-setup
+   ```
+4. Create a feature branch
+5. Make your changes
+6. Test thoroughly
+7. Submit a pull request
+
+## Documentation
+
+### Resources
+
+Explore our documentation:
+
+<CardGroup cols={2}>
+  <Card title="Getting Started" href="/introduction" icon="rocket">
+    Quick start guide for new users
+  </Card>
+  <Card title="Self-Hosting" href="/self-hosting/overview" icon="server">
+    Deploy Cap on your own infrastructure
+  </Card>
+  <Card title="FAQ" href="/resources/faq" icon="question">
+    Answers to common questions
+  </Card>
+  <Card title="Troubleshooting" href="/resources/troubleshooting" icon="wrench">
+    Solutions to common issues
+  </Card>
+</CardGroup>
+
+### API Documentation
+
+For developers building with Cap:
+
+<Note>
+  API documentation is currently in development. Check back soon or contribute to the docs!
+</Note>
+
+## Social Media
+
+Stay updated with Cap news and updates:
+
+<CardGroup cols={3}>
+  <Card title="GitHub" icon="github" href="https://github.com/CapSoftware/Cap">
+    Star the repo and watch for updates
+  </Card>
+  <Card title="Twitter/X" icon="twitter" href="https://twitter.com/CapDotSo">
+    Follow for announcements
+  </Card>
+  <Card title="Discord" icon="discord" href="https://discord.com/invite/y8gdQ3WRN3">
+    Join the community
+  </Card>
+</CardGroup>
+
+## Self-Hosting Support
+
+### Community Help
+
+For self-hosting questions:
+
+1. Check the [self-hosting documentation](/self-hosting/overview)
+2. Search [GitHub issues](https://github.com/CapSoftware/Cap/issues)
+3. Ask on [Discord](https://discord.com/invite/y8gdQ3WRN3) in the #self-hosting channel
+
+### Common Resources
+
+<AccordionGroup>
+  <Accordion title="Quick Start Guide">
+    Get Cap running with one command:
+    ```bash
+    git clone https://github.com/CapSoftware/Cap.git && cd Cap && docker compose up -d
+    ```
+    Visit [Self-Hosting Quickstart](/self-hosting/quick-start) for details.
+  </Accordion>
+  
+  <Accordion title="Configuration Help">
+    Learn how to configure:
+    - Email providers for login links
+    - S3 storage (MinIO, AWS, etc.)
+    - Environment variables
+    - SSL/HTTPS
+    - AI features
+    
+    See [Configuration Guide](/self-hosting/environment-variables).
+  </Accordion>
+  
+  <Accordion title="Deployment Options">
+    Deploy Cap on:
+    - Docker Compose (recommended)
+    - Railway (one-click)
+    - Coolify
+    - Your own VPS
+    
+    Compare options in [Docker Compose Guide](/self-hosting/docker-compose).
+  </Accordion>
+</AccordionGroup>
+
+## Feedback
+
+Your feedback helps make Cap better!
+
+### What to Share
+
+- Feature requests and ideas
+- User experience feedback
+- Performance issues
+- Documentation improvements
+- Use cases and workflows
+
+### Where to Share
+
+<Steps>
+  <Step title="Join Discord">
+    The fastest way to share feedback is on Discord where you can discuss directly with the team and community.
+  </Step>
+  
+  <Step title="Create GitHub Issue">
+    For bug reports or detailed feature requests, create a GitHub issue with full context.
+  </Step>
+  
+  <Step title="Contribute Code">
+    The best feedback is a pull request! Fix bugs, add features, or improve docs.
+  </Step>
+</Steps>
+
+## Security
+
+### Reporting Security Issues
+
+If you discover a security vulnerability:
+
+<Warning>
+  **Do NOT create a public GitHub issue for security vulnerabilities.**
+</Warning>
+
+Instead:
+1. Email the maintainers privately (check GitHub for security contact)
+2. Provide detailed information about the vulnerability
+3. Wait for a response before public disclosure
+
+Responsible disclosure helps keep all Cap users safe.
+
+## Code of Conduct
+
+Cap is committed to providing a welcoming and inclusive community.
+
+### Our Standards
+
+- Be respectful and considerate
+- Welcome newcomers and help them learn
+- Focus on constructive feedback
+- Respect different viewpoints and experiences
+- Accept responsibility and apologize for mistakes
+
+### Enforcement
+
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the project maintainers. All complaints will be reviewed and investigated.
+
+## Thank You
+
+Cap is built by the community, for the community. Thank you for:
+
+- Using Cap for your video messaging
+- Reporting bugs and suggesting features
+- Contributing code and documentation
+- Helping other users in Discord
+- Spreading the word about Cap
+
+Together, we're building the best open source alternative to Loom!

@@ -1,0 +1,374 @@
+---
+title: Database Package
+description: Shared database layer with Drizzle ORM (@cap/database)
+---
+
+## Overview
+
+The `@cap/database` package provides a shared database layer for Cap using Drizzle ORM and MySQL. It includes schema definitions, migrations, authentication, and email templates.
+
+## Installation
+
+The database package is included in the monorepo:
+
+```bash
+pnpm install
+```
+
+## Package Information
+
+**Package Name:** `@cap/database`
+
+**Location:** `packages/database/`
+
+**Type:** Private monorepo package
+
+## Exports
+
+```typescript
+import db from "@cap/database";
+import { authOptions } from "@cap/database/auth/auth-options";
+import { getServerSession } from "@cap/database/auth/session";
+import { users, videos, comments } from "@cap/database/schema";
+import { encrypt, decrypt } from "@cap/database/crypto";
+import { nanoIdLength } from "@cap/database/helpers";
+import { runMigrations } from "@cap/database/migrate";
+```
+
+## Database Schema
+
+### Core Tables
+
+#### Users
+
+```typescript:packages/database/schema.ts
+interface User {
+  id: string;
+  name: string | null;
+  lastName: string | null;
+  email: string;
+  emailVerified: Date | null;
+  image: string | null;
+  stripeCustomerId: string | null;
+  stripeSubscriptionId: string | null;
+  stripeSubscriptionStatus: string | null;
+  preferences: {
+    notifications: {
+      pauseComments: boolean;
+      pauseReplies: boolean;
+      pauseViews: boolean;
+      pauseReactions: boolean;
+    };
+  } | null;
+  activeOrganizationId: string | null;
+}
+```
+
+#### Videos
+
+```typescript
+interface Video {
+  id: string;
+  ownerId: string;
+  name: string;
+  createdAt: Date;
+  totalComments: number;
+  totalReactions: number;
+  public: boolean;
+  source: "local" | "s3";
+  transcriptionStatus: "PROCESSING" | "COMPLETE" | "ERROR" | null;
+  metadata: VideoMetadata;
+}
+```
+
+#### Comments
+
+```typescript
+interface Comment {
+  id: string;
+  content: string;
+  videoId: string;
+  authorId: string;
+  parentId: string | null;
+  type: "text" | "textEmbed";
+  createdAt: Date;
+}
+```
+
+#### Organizations
+
+```typescript
+interface Organisation {
+  id: string;
+  name: string;
+  createdAt: Date;
+  ownerId: string;
+  customDomain: string | null;
+  stripeCustomerId: string | null;
+}
+```
+
+#### Folders
+
+```typescript
+interface Folder {
+  id: string;
+  name: string;
+  ownerId: string;
+  spaceId: string | null;
+  createdAt: Date;
+}
+```
+
+### S3 Configuration
+
+```typescript
+interface S3Bucket {
+  id: string;
+  name: string;
+  ownerId: string;
+  region: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+  endpoint: string | null;
+  createdAt: Date;
+}
+```
+
+## Database Scripts
+
+### Generate Migrations
+
+Create new migration files from schema changes:
+
+```bash
+pnpm db:generate
+```
+
+### Push Schema Changes
+
+Apply schema changes to the database:
+
+```bash
+pnpm db:push
+```
+
+<Warning>
+  Always run `db:generate` before `db:push` to create migration files.
+</Warning>
+
+### Open Drizzle Studio
+
+Visual database browser:
+
+```bash
+pnpm db:studio
+```
+
+Access at `https://local.drizzle.studio`
+
+### Check Migrations
+
+Verify migration files:
+
+```bash
+pnpm --filter @cap/database db:check
+```
+
+### Drop Migrations
+
+Remove migration files:
+
+```bash
+pnpm --filter @cap/database db:drop
+```
+
+## Database Connection
+
+The database connection is configured via environment variables:
+
+```bash
+DATABASE_URL="mysql://user:password@localhost:3306/cap"
+```
+
+For local development with Docker:
+
+```bash
+DATABASE_URL="mysql://root:password@localhost:3307/cap"
+```
+
+## Database Client
+
+The package exports a configured Drizzle instance:
+
+```typescript:packages/database/index.ts
+import { drizzle } from "drizzle-orm/mysql2";
+import mysql from "mysql2/promise";
+
+const connection = mysql.createPool({
+  uri: process.env.DATABASE_URL,
+});
+
+const db = drizzle(connection);
+
+export default db;
+```
+
+## Crypto Utilities
+
+The package includes encryption utilities for sensitive data:
+
+```typescript:packages/database/crypto.ts
+import { encrypt, decrypt } from "@cap/database/crypto";
+
+const encrypted = encrypt("sensitive-data");
+const decrypted = decrypt(encrypted);
+```
+
+## Authentication
+
+NextAuth.js configuration:
+
+```typescript
+import { authOptions } from "@cap/database/auth/auth-options";
+import { getServerSession } from "next-auth";
+
+const session = await getServerSession(authOptions);
+```
+
+### Auth Providers
+
+- **Email Magic Links** (primary)
+- **Google OAuth** (optional)
+- **GitHub OAuth** (optional)
+
+## Email Templates
+
+React Email templates are included:
+
+```typescript
+import { MagicLinkEmail } from "@cap/database/emails/MagicLink";
+import { WelcomeEmail } from "@cap/database/emails/Welcome";
+```
+
+Emails are styled with Tailwind CSS via `@react-email/tailwind`.
+
+## Type Definitions
+
+### Video Metadata
+
+```typescript:packages/database/types/metadata.ts
+interface VideoMetadata {
+  customCreatedAt?: string;
+  sourceName?: string;
+  aiTitle?: string;
+  summary?: string;
+  chapters?: { title: string; start: number }[];
+  aiGenerationStatus?: "QUEUED" | "PROCESSING" | "COMPLETE" | "ERROR" | "SKIPPED";
+  enhancedAudioStatus?: "PROCESSING" | "COMPLETE" | "ERROR" | "SKIPPED";
+}
+```
+
+## Migrations
+
+Migrations are stored in `packages/database/migrations/`.
+
+### Migration Flow
+
+1. Modify schema in `schema.ts`
+2. Run `pnpm db:generate` to create migration
+3. Review generated SQL in `migrations/`
+4. Run `pnpm db:push` to apply
+5. Commit migration files to git
+
+### Run Migrations Programmatically
+
+```typescript
+import { runMigrations } from "@cap/database/migrate";
+
+await runMigrations();
+```
+
+## Database Support
+
+<Warning>
+  Cap is designed to work with **MySQL only**. MariaDB or other compatible databases might partially work but are not officially supported.
+</Warning>
+
+## Dependencies
+
+### Core Dependencies
+
+```json:packages/database/package.json
+{
+  "drizzle-orm": "0.44.6",
+  "mysql2": "^3.15.2",
+  "@effect/sql-mysql2": "^0.47.0",
+  "next-auth": "^4.24.5",
+  "zod": "^3"
+}
+```
+
+### Dev Dependencies
+
+```json
+{
+  "drizzle-kit": "0.31.0",
+  "typescript": "^5.8.3"
+}
+```
+
+## Effect SQL Integration
+
+The database supports Effect.ts SQL queries:
+
+```typescript
+import { Effect } from "effect";
+import { MySql } from "@effect/sql-mysql2";
+
+const query = Effect.gen(function* () {
+  const sql = yield* MySql.MySql;
+  const result = yield* sql`SELECT * FROM users WHERE id = ${userId}`;
+  return result;
+});
+```
+
+## Observability
+
+The package includes OpenTelemetry instrumentation via `@kubiks/otel-drizzle`.
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Schema Changes">
+    1. Always run `db:generate` before `db:push`
+    2. Review generated migrations before applying
+    3. Test migrations on a development database first
+    4. Commit migration files to version control
+  </Accordion>
+  
+  <Accordion title="Sensitive Data">
+    1. Use `encryptedText` type for sensitive fields
+    2. Store S3 credentials encrypted
+    3. Never log decrypted values
+    4. Use environment variables for keys
+  </Accordion>
+  
+  <Accordion title="Query Performance">
+    1. Add indexes for frequently queried fields
+    2. Use `.where()` to filter results
+    3. Limit result sets with `.limit()`
+    4. Use `.select()` to fetch only needed fields
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="UI Components" icon="paintbrush" href="/packages/ui-components">
+    Learn about UI component packages
+  </Card>
+  <Card title="Development Setup" icon="wrench" href="/development/setup">
+    Set up your development environment
+  </Card>
+</CardGroup>

@@ -1,0 +1,313 @@
+---
+title: Roadmap
+description: Future plans and development roadmap for Cap
+---
+
+## Vision
+
+Cap aims to be the best open source alternative to Loom, providing a privacy-focused, self-hostable video messaging platform that anyone can use and customize.
+
+### Core Principles
+
+<CardGroup cols={2}>
+  <Card title="Open Source" icon="code">
+    Transparent development with community contributions
+  </Card>
+  
+  <Card title="Privacy First" icon="shield">
+    Your data stays under your control
+  </Card>
+  
+  <Card title="Self-Hostable" icon="server">
+    Run Cap on your own infrastructure
+  </Card>
+  
+  <Card title="High Performance" icon="gauge">
+    Built with Rust and modern web technologies
+  </Card>
+</CardGroup>
+
+## Current Focus
+
+The Cap team is currently focused on:
+
+<AccordionGroup>
+  <Accordion title="Stability & Performance">
+    - Improving recording reliability across platforms
+    - Optimizing video encoding and upload performance
+    - Reducing desktop app memory footprint
+    - Enhancing playback quality and speed
+  </Accordion>
+  
+  <Accordion title="Self-Hosting Experience">
+    - Simplified deployment options
+    - Better documentation and guides
+    - Configuration UI for common settings
+    - Migration tools and scripts
+  </Accordion>
+  
+  <Accordion title="Core Features">
+    - Recording stability improvements
+    - Enhanced editing capabilities
+    - Better sharing and collaboration features
+    - Analytics and insights
+  </Accordion>
+</AccordionGroup>
+
+## Planned Features
+
+### Short Term (Next 3 Months)
+
+<Steps>
+  <Step title="Linux Desktop Support">
+    Bring Cap Desktop to Linux users with full feature parity
+  </Step>
+  
+  <Step title="Enhanced Editing">
+    More powerful editing tools for trimming, cutting, and annotating videos
+  </Step>
+  
+  <Step title="Mobile Apps">
+    iOS and Android apps for viewing and sharing (recording support to follow)
+  </Step>
+  
+  <Step title="Team Collaboration">
+    Workspaces, team sharing, and permission management
+  </Step>
+</Steps>
+
+### Medium Term (3-6 Months)
+
+<CardGroup cols={2}>
+  <Card title="AI Features" icon="brain">
+    - Automatic transcription
+    - Video summaries
+    - Smart chapters
+    - Content suggestions
+  </Card>
+  
+  <Card title="Advanced Recording" icon="video">
+    - Multi-track audio
+    - Virtual backgrounds
+    - Custom overlays
+    - Picture-in-picture controls
+  </Card>
+  
+  <Card title="Integrations" icon="plug">
+    - Slack integration
+    - Notion embeds
+    - GitHub comments
+    - API for custom integrations
+  </Card>
+  
+  <Card title="Analytics" icon="chart-line">
+    - View analytics
+    - Engagement metrics
+    - Audience insights
+    - Export reports
+  </Card>
+</CardGroup>
+
+### Long Term (6+ Months)
+
+- **Live Streaming:** Stream directly to platforms or self-hosted servers
+- **Real-time Collaboration:** Co-editing and commenting on videos
+- **Advanced Templates:** Pre-built templates for common video types
+- **Plugin System:** Extensible architecture for community plugins
+- **Enterprise Features:** SSO, advanced permissions, audit logs
+- **Mobile Recording:** Full recording capabilities on iOS and Android
+
+## Platform Support
+
+### Current Support
+
+<Check>macOS (Desktop App)</Check>
+<Check>Windows (Desktop App)</Check>
+<Check>Web (All modern browsers)</Check>
+
+### Planned Support
+
+<Steps>
+  <Step title="Linux Desktop">
+    Native desktop app for Linux distributions
+  </Step>
+  
+  <Step title="iOS & Android">
+    Mobile apps for viewing and recording
+  </Step>
+  
+  <Step title="Browser Extensions">
+    Chrome, Firefox extensions for quick recording
+  </Step>
+</Steps>
+
+## Community Requests
+
+Many features are driven by community feedback. Top requested features:
+
+<AccordionGroup>
+  <Accordion title="Recording Features">
+    - System audio capture on all platforms
+    - Custom recording regions with presets
+    - Webcam-only recording mode
+    - Pause and resume during recording
+    - Countdown timer customization
+  </Accordion>
+  
+  <Accordion title="Editing & Export">
+    - Advanced trimming and cutting
+    - Add text overlays and annotations
+    - Export to different formats (MP4, GIF, etc.)
+    - Batch export options
+    - Video templates
+  </Accordion>
+  
+  <Accordion title="Sharing & Collaboration">
+    - Password-protected videos
+    - Custom branding and domains
+    - Email capture before viewing
+    - Comments and reactions
+    - Video collections and playlists
+  </Accordion>
+  
+  <Accordion title="Self-Hosting">
+    - One-click deployment options
+    - Simplified configuration
+    - Database migrations UI
+    - Health monitoring dashboard
+    - Backup and restore tools
+  </Accordion>
+</AccordionGroup>
+
+## Contributing to the Roadmap
+
+Want to influence Cap's direction?
+
+<CardGroup cols={2}>
+  <Card title="Suggest Features" icon="lightbulb" href="https://discord.com/invite/y8gdQ3WRN3">
+    Share your ideas on Discord
+  </Card>
+  
+  <Card title="Vote on Features" icon="check-to-slot" href="https://github.com/CapSoftware/Cap/discussions">
+    Upvote features in GitHub Discussions
+  </Card>
+  
+  <Card title="Contribute Code" icon="code" href="https://github.com/CapSoftware/Cap">
+    Build the features you want to see
+  </Card>
+  
+  <Card title="Sponsor Development" icon="heart" href="https://console.algora.io/org/CapSoftware/bounties">
+    Fund specific features through bounties
+  </Card>
+</CardGroup>
+
+### How Features Get Prioritized
+
+1. **Community Demand:** Popular requests and upvotes
+2. **Strategic Value:** Alignment with Cap's vision
+3. **Technical Feasibility:** Implementation complexity
+4. **Maintainability:** Long-term support requirements
+5. **Contributor Interest:** Community members willing to build it
+
+## Development Process
+
+### How We Build
+
+<Steps>
+  <Step title="Planning">
+    Features are discussed in Discord and GitHub Discussions
+  </Step>
+  
+  <Step title="Design">
+    Technical design and user experience considerations
+  </Step>
+  
+  <Step title="Implementation">
+    Core team and community contributors build features
+  </Step>
+  
+  <Step title="Testing">
+    Thorough testing across platforms
+  </Step>
+  
+  <Step title="Release">
+    Features ship in stable releases with documentation
+  </Step>
+</Steps>
+
+### Transparency
+
+All development happens in the open:
+
+- **GitHub Issues:** Track bugs and feature requests
+- **Pull Requests:** Review code changes before merging
+- **Discord:** Real-time discussions and updates
+- **Release Notes:** Detailed changelog for every release
+
+## Technology Roadmap
+
+### Performance Improvements
+
+- **Video Encoding:** Faster encoding with hardware acceleration
+- **Upload Speed:** Chunked uploads and resumable transfers
+- **Startup Time:** Faster desktop app launch
+- **Memory Usage:** Reduced memory footprint
+
+### Architecture Enhancements
+
+- **Effect Integration:** Deeper Effect integration for type-safe backend
+- **Plugin System:** Extensible architecture for community additions
+- **API Versioning:** Stable public API with versioning
+- **Microservices:** Optional microservices architecture for scale
+
+### Developer Experience
+
+- **Better Documentation:** Comprehensive API and integration docs
+- **Development Tools:** Improved debugging and testing tools
+- **Contribution Guide:** Clearer pathways for new contributors
+- **Code Quality:** Automated testing and code review tools
+
+## Timeline Disclaimer
+
+<Warning>
+  This roadmap represents current plans and priorities. Features and timelines may change based on:
+  - Community feedback and priorities
+  - Technical challenges and discoveries
+  - Available resources and contributors
+  - External dependencies and partnerships
+  
+  We'll keep this page updated as plans evolve.
+</Warning>
+
+## Get Involved
+
+Help shape the future of Cap:
+
+<CardGroup cols={3}>
+  <Card title="Join Discord" icon="discord" href="https://discord.com/invite/y8gdQ3WRN3">
+    Discuss features and priorities
+  </Card>
+  
+  <Card title="Contribute Code" icon="code" href="https://github.com/CapSoftware/Cap">
+    Build the features you want
+  </Card>
+  
+  <Card title="Claim Bounties" icon="dollar-sign" href="https://console.algora.io/org/CapSoftware/bounties">
+    Get paid to contribute
+  </Card>
+</CardGroup>
+
+## Stay Updated
+
+Follow along as we build:
+
+- **GitHub:** Watch the repository for updates
+- **Discord:** Join announcements channel
+- **Twitter:** Follow [@CapDotSo](https://twitter.com/CapDotSo)
+- **Changelog:** Check [releases](/resources/changelog) regularly
+
+---
+
+<Note>
+  Last updated: Check the [GitHub repository](https://github.com/CapSoftware/Cap) for the latest developments and discussions.
+</Note>

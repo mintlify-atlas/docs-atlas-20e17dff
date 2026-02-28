@@ -1,0 +1,456 @@
+---
+title: 'Video Reactions'
+description: 'Add emoji reactions at specific moments in your videos'
+---
+
+## Reactions Overview
+
+Reactions let viewers express emotions and respond to specific video moments using emojis. They're:
+
+- **Quick**: One-click engagement
+- **Timestamped**: Placed at specific video moments
+- **Visual**: Appear on video timeline
+- **Aggregated**: Show popular moments
+- **Non-intrusive**: Don't interrupt playback
+
+<Info>
+  Reactions are enabled by default alongside comments. They provide lightweight engagement without requiring text.
+</Info>
+
+## How Reactions Work
+
+### Adding Reactions
+
+1. Watch your video
+2. When you see something you want to react to, click the **reaction button**
+3. Choose an emoji
+4. Reaction is placed at that timestamp
+
+<Tip>
+  You can add multiple reactions throughout a video, even at the same timestamp.
+</Tip>
+
+### Available Emojis
+
+Common reaction emojis include:
+
+- 👍 Thumbs up
+- ❤️ Love
+- 😂 Laugh
+- 😮 Surprise
+- 👎 Thumbs down
+- 🎉 Celebrate
+- 💔 Sad
+- 🔥 Fire
+- 🤔 Thinking
+- 👏 Applause
+
+<Check>
+  More emoji options may be available depending on your platform.
+</Check>
+
+## Viewing Reactions
+
+### Activity Tab
+
+All reactions appear in the Activity tab:
+
+1. Open video share page
+2. Click **Activity** tab
+3. View reactions mixed with comments
+4. Filter by reactions only (toggle)
+
+<Frame>
+  <img src="placeholder for reactions interface" alt="Reactions Interface" />
+</Frame>
+
+### Timeline Display
+
+Reactions show on the video timeline:
+
+- **Markers**: Small indicators on progress bar
+- **Counts**: Number shows how many reactions at that moment
+- **Hover**: See breakdown of emoji types
+- **Click**: Jump to that moment
+
+### Reaction Stamps on Video
+
+When enabled, floating reaction stamps appear:
+
+- Show during playback at the moment reactions were added
+- Display emoji and count
+- Fade in and out smoothly
+- Don't obstruct main content
+
+<Info>
+  Video owners can disable reaction stamps in video settings if they're distracting.
+</Info>
+
+## Reaction Analytics
+
+Track reaction engagement:
+
+### Total Reactions
+
+- Count of all emoji reactions
+- Breakdown by emoji type
+- Reaction rate (reactions per view)
+
+### Popular Moments
+
+Identify video moments with most reactions:
+
+- Peaks show engaging content
+- Clusters indicate memorable scenes
+- Use data to improve future videos
+
+### Reaction Heatmap
+
+Visualize reaction distribution:
+
+- Timeline heatmap shows reaction density
+- Brighter colors = more reactions
+- Identify high-engagement sections
+
+See [Analytics](/web/analytics) for detailed metrics.
+
+## Reactions vs Comments
+
+<Tabs>
+  <Tab title="When to Use Reactions">
+    Best for:
+    
+    - Quick emotional responses
+    - Showing appreciation
+    - Highlighting funny moments
+    - Agreement/disagreement
+    - Celebrating wins
+    - No explanation needed
+  </Tab>
+  
+  <Tab title="When to Use Comments">
+    Best for:
+    
+    - Asking questions
+    - Providing feedback
+    - Starting discussions
+    - Detailed thoughts
+    - Constructive criticism
+    - Needs explanation
+  </Tab>
+</Tabs>
+
+## Managing Reactions
+
+### For Video Owners
+
+<Info>
+  Reaction management options in video settings.
+</Info>
+
+#### Disable Reactions
+
+1. Go to video settings
+2. Find **Reactions** section
+3. Toggle **Allow reactions** to Off
+4. Save changes
+
+**When disabled:**
+
+- Existing reactions are hidden
+- New reactions cannot be added
+- Can be re-enabled anytime
+
+#### Hide Reaction Stamps
+
+Keep reactions but hide visual stamps:
+
+1. Video settings → Reactions
+2. Toggle **Show reaction stamps** to Off
+3. Reactions still trackable in Activity tab
+
+<Tip>
+  Useful if reactions distract from your content but you still want to track engagement.
+</Tip>
+
+## Reaction Etiquette
+
+<Steps>
+  <Step title="React Genuinely">
+    Only react when you genuinely feel that emotion
+  </Step>
+  <Step title="Be Positive">
+    Use positive reactions to encourage creators
+  </Step>
+  <Step title="Don't Spam">
+    Avoid excessive reactions that might seem insincere
+  </Step>
+  <Step title="Context Matters">
+    Ensure reaction fits the video moment
+  </Step>
+</Steps>
+
+## Reaction Timestamps
+
+### Precise Timing
+
+Reactions capture:
+
+- Exact second when emoji was added
+- Video playback position
+- Millisecond precision
+
+### Clicking Reaction Timestamps
+
+Jump to reactions:
+
+1. View reactions in Activity tab
+2. Click the timestamp on any reaction
+3. Video seeks to that moment
+4. Replay the scene that triggered the reaction
+
+## Anonymous Reactions
+
+Reactions are semi-anonymous:
+
+- **No author names**: Only emoji is shown
+- **Aggregated counts**: Multiple reactions combined
+- **Privacy-friendly**: No personal data exposed
+
+<Info>
+  Unlike comments, reactions don't show who reacted. They're designed for quick, low-friction engagement.
+</Info>
+
+## Reactions in Embeds
+
+Reactions work in embedded videos:
+
+- Viewers can react on embedded players
+- Reaction counts sync across embed and main page
+- Timestamps work the same
+- Subject to video privacy settings
+
+<Check>
+  Embeds can have reaction stamps disabled separately from main page.
+</Check>
+
+## Best Practices for Creators
+
+### Encourage Reactions
+
+- **Call-to-action**: Ask viewers to react
+- **Engage back**: Acknowledge reaction trends
+- **Create moments**: Build suspense or humor to trigger reactions
+
+### Analyze Patterns
+
+- Identify which content types get most reactions
+- See if certain topics resonate
+- Find your most engaging moments
+- Replicate successful patterns
+
+### Use with Comments
+
+Combine both features:
+
+- Reactions for quick feedback
+- Comments for detailed discussions
+- Both add to engagement metrics
+- Complement each other
+
+## Technical Implementation
+
+### Reaction Data Structure
+
+```json Reaction Object
+{
+  "id": "reaction_456",
+  "type": "emoji",
+  "emoji": "😂",
+  "timestamp": 87.3,
+  "createdAt": "2024-03-15T10:30:00Z"
+}
+```
+
+### API Access
+
+Fetch reactions via API:
+
+```javascript Get Reactions
+fetch('https://cap.so/api/videos/VIDEO_ID/reactions', {
+  headers: {
+    'Authorization': 'Bearer YOUR_API_KEY'
+  }
+})
+.then(res => res.json())
+.then(reactions => console.log(reactions));
+```
+
+<Note>
+  API access available for Cap Pro users. Contact support for documentation.
+</Note>
+
+## Reaction Limits
+
+### Per User
+
+- No limit on total reactions
+- Can react multiple times per video
+- Can use different emojis
+- No cooldown period
+
+### Per Video
+
+- Unlimited reactions supported
+- Performance optimized for high counts
+- Aggregation keeps interface clean
+
+## Mobile Experience
+
+Reactions are mobile-optimized:
+
+- **Touch-friendly**: Large tap targets
+- **Native emojis**: Uses device emoji set
+- **Quick access**: Reaction button always visible
+- **Responsive**: Adapts to screen size
+
+## Reaction Notifications
+
+Creators can be notified:
+
+- First reaction milestone (e.g., 10, 50, 100)
+- Unusual reaction spikes
+- High-engagement moments
+
+<Tip>
+  Configure notification preferences in account settings.
+</Tip>
+
+## Privacy Considerations
+
+### Data Collected
+
+- Emoji type
+- Timestamp
+- Creation date/time
+- No personal information
+
+### Who Can See
+
+- Anyone with video link (if unlisted)
+- Password required if video is protected
+- Not visible if video is private
+
+<Info>
+  Reactions inherit video privacy settings automatically.
+</Info>
+
+## Integration Features
+
+### With Chapters
+
+- Reactions grouped by chapter
+- See which chapters get most engagement
+- Navigate reactions by section
+
+### With Transcripts
+
+- Reactions aligned with transcript text
+- Find what was said during reaction moments
+- Context for engagement spikes
+
+### With Analytics
+
+- Reaction data in engagement metrics
+- Heatmaps show popular moments
+- Compare reaction vs comment engagement
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Cannot add reactions">
+    - Ensure you're signed in to Cap
+    - Check that reactions are enabled for video
+    - Verify video is not set to private (without access)
+    - Try refreshing the page
+  </Accordion>
+  
+  <Accordion title="Reactions not appearing">
+    - Reactions may be disabled by owner
+    - Check video privacy settings
+    - Clear browser cache
+    - Try different browser
+  </Accordion>
+  
+  <Accordion title="Reaction stamps are distracting">
+    - Video owner can disable stamps in settings
+    - Use theater or fullscreen mode
+    - Stamps automatically reduce on mobile
+  </Accordion>
+  
+  <Accordion title="Wrong emoji selected">
+    - Can't edit reactions once posted
+    - Can add another reaction at same timestamp
+    - Aggregate counts include all reactions
+  </Accordion>
+</AccordionGroup>
+
+## Future Enhancements
+
+<Info>
+  Coming soon:
+  - Custom emoji reactions
+  - Reaction animations on player
+  - Reaction leaderboards
+  - Reaction-triggered events
+  - Export reaction data
+</Info>
+
+## Keyboard Shortcuts
+
+Quick reactions while watching:
+
+- **R**: Open reaction picker
+- **1-9**: Quick-select preset emojis
+- **Escape**: Close picker
+
+<Tip>
+  Video owners can configure which emojis appear as presets.
+</Tip>
+
+## Use Cases
+
+### Tutorials
+
+- 👍 for helpful tips
+- 🤔 for confusing parts
+- 👏 at end of sections
+
+### Entertainment
+
+- 😂 for funny moments
+- 😮 for plot twists
+- ❤️ for emotional scenes
+
+### Product Demos
+
+- 🔥 for impressive features
+- 🎉 for launch moments
+- 👍 for good explanations
+
+### Presentations
+
+- 👏 for key points
+- 🤔 for complex topics
+- 👍 for agreement
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Comments" icon="comments" href="/features/comments">
+    Learn about timestamped comments
+  </Card>
+  <Card title="Analytics" icon="chart-line" href="/web/analytics">
+    Track reaction engagement
+  </Card>
+</CardGroup>

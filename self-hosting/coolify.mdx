@@ -1,0 +1,566 @@
+---
+title: "Coolify Deployment"
+description: "Deploy Cap on Coolify, the self-hosted PaaS platform"
+---
+
+Coolify is an open-source, self-hosted platform-as-a-service that makes deploying applications simple. This guide covers deploying Cap on Coolify.
+
+## What is Coolify?
+
+Coolify is a self-hosted alternative to Heroku, Netlify, and Vercel. It provides:
+
+- Git-based deployments
+- Automatic SSL certificates
+- Built-in reverse proxy (Traefik)
+- Docker Compose support
+- Environment management
+- Zero-downtime deployments
+
+## Prerequisites
+
+- Coolify instance running (v4.0+)
+- Domain name pointed to your Coolify server
+- At least 4GB RAM available on Coolify server
+
+<Accordion title="Don't have Coolify yet?">
+  Install Coolify on a fresh Ubuntu/Debian server:
+
+  ```bash
+  curl -fsSL https://cdn.coollabs.io/coolify/install.sh | bash
+  ```
+
+  Access Coolify at `http://your-server-ip:8000`
+
+  See [Coolify docs](https://coolify.io/docs) for detailed installation.
+</Accordion>
+
+## Deployment Methods
+
+<Tabs>
+  <Tab title="Git Repository (Recommended)">
+    Deploy directly from the Cap GitHub repository.
+  </Tab>
+  <Tab title="Fork Repository">
+    Fork Cap to your own GitHub account for custom modifications.
+  </Tab>
+</Tabs>
+
+## Deploy from GitHub
+
+<Steps>
+  <Step title="Create New Project">
+    1. Log in to your Coolify instance
+    2. Click **New Project**
+    3. Name it "Cap" and click **Continue**
+  </Step>
+
+  <Step title="Add Docker Compose Resource">
+    1. Click **New Resource**
+    2. Select **Docker Compose**
+    3. Choose **Public Repository**
+  </Step>
+
+  <Step title="Configure Repository">
+    Enter repository details:
+
+    - **Git Repository URL**: `https://github.com/CapSoftware/Cap`
+    - **Branch**: `main`
+    - **Docker Compose File**: `docker-compose.coolify.yml`
+    - **Build Pack**: Docker Compose
+
+    Click **Continue**
+  </Step>
+
+  <Step title="Set Environment Variables">
+    Coolify will show environment variable inputs. Configure these:
+
+    **Required Variables**:
+
+    ```bash
+    # Public URLs (Coolify will provide domains)
+    WEB_URL=https://cap.yourdomain.com
+    S3_PUBLIC_ENDPOINT=https://s3.yourdomain.com
+
+    # Security (generate with: openssl rand -hex 32)
+    DATABASE_ENCRYPTION_KEY=
+    NEXTAUTH_SECRET=
+    MEDIA_SERVER_WEBHOOK_SECRET=
+
+    # Database
+    MYSQL_PASSWORD=
+    MYSQL_ROOT_PASSWORD=
+
+    # MinIO
+    MINIO_ROOT_USER=capadmin
+    MINIO_ROOT_PASSWORD=
+    S3_BUCKET=cap
+    ```
+
+    <Note>
+      You can also copy variables from `docker-compose.coolify.env.example` in the Cap repository.
+    </Note>
+  </Step>
+
+  <Step title="Generate Secrets">
+    Open a terminal and generate secure secrets:
+
+    ```bash
+    # Run this 3 times for different secrets
+    openssl rand -hex 32
+    ```
+
+    Use the output for:
+    - `DATABASE_ENCRYPTION_KEY`
+    - `NEXTAUTH_SECRET`
+    - `MEDIA_SERVER_WEBHOOK_SECRET`
+
+    <Warning>
+      Never use the default placeholder values from the example file in production.
+    </Warning>
+  </Step>
+
+  <Step title="Configure Domains">
+    Coolify requires domains for services:
+
+    1. **cap-web**: Add your main domain (e.g., `cap.yourdomain.com`)
+    2. **minio**: Add S3 domain (e.g., `s3.yourdomain.com`)
+
+    Coolify will automatically:
+    - Configure Traefik reverse proxy
+    - Generate SSL certificates via Let's Encrypt
+    - Set up automatic HTTPS redirects
+  </Step>
+
+  <Step title="Deploy">
+    Click **Deploy** to start the deployment.
+
+    Coolify will:
+    - Clone the repository
+    - Pull Docker images
+    - Set up networking
+    - Configure SSL certificates
+    - Start all services
+
+    First deployment takes 3-5 minutes.
+  </Step>
+
+  <Step title="Monitor Deployment">
+    Watch the deployment logs in real-time:
+
+    1. Click on the deployment in progress
+    2. View build and startup logs
+    3. Wait for "Deployment successful" message
+  </Step>
+
+  <Step title="Access Cap">
+    Once deployed, access Cap at your configured domain:
+
+    ```
+    https://cap.yourdomain.com
+    ```
+
+    SSL should work automatically.
+  </Step>
+
+  <Step title="Get Login Link">
+    Without email configured, find login links in logs:
+
+    1. Click on **cap-web** service
+    2. Click **Logs**
+    3. Look for:
+    ```
+    Login link: https://cap.yourdomain.com/api/auth/callback/email?token=...
+    ```
+  </Step>
+</Steps>
+
+## Understanding docker-compose.coolify.yml
+
+Cap provides a Coolify-specific compose file:
+
+```yaml docker-compose.coolify.yml
+services:
+  cap-web:
+    image: ghcr.io/capsoftware/cap-web:latest
+    environment:
+      WEB_URL: ${WEB_URL}
+      DATABASE_ENCRYPTION_KEY: ${DATABASE_ENCRYPTION_KEY}
+      # ... other variables from Coolify UI
+```
+
+Key differences from standard `docker-compose.yml`:
+
+- Uses environment variable placeholders (no defaults)
+- Configured for Coolify's networking
+- Optimized for Traefik reverse proxy
+- Includes health checks for zero-downtime deploys
+
+## Configure Email
+
+Add email support to send login links:
+
+<Steps>
+  <Step title="Get Resend API Key">
+    1. Sign up at [resend.com](https://resend.com)
+    2. Verify your domain
+    3. Create an API key
+  </Step>
+
+  <Step title="Add Variables in Coolify">
+    1. Go to your Cap project in Coolify
+    2. Click **Environment Variables**
+    3. Add:
+    ```bash
+    RESEND_API_KEY=re_xxxxxxxxxxxxx
+    RESEND_FROM_DOMAIN=yourdomain.com
+    ```
+  </Step>
+
+  <Step title="Redeploy">
+    Click **Redeploy** to apply changes.
+  </Step>
+</Steps>
+
+See [Email Setup](/self-hosting/email-setup) for details.
+
+## Add AI Features
+
+<Steps>
+  <Step title="Get API Keys">
+    Sign up for:
+    - [Deepgram](https://deepgram.com) - Audio transcription
+    - [Groq](https://groq.com) - Fast AI summaries (recommended)
+    - [OpenAI](https://openai.com) - Alternative for AI summaries
+  </Step>
+
+  <Step title="Add to Coolify">
+    In Environment Variables:
+
+    ```bash
+    DEEPGRAM_API_KEY=your-deepgram-key
+    GROQ_API_KEY=your-groq-key
+    OPENAI_API_KEY=your-openai-key
+    ```
+  </Step>
+
+  <Step title="Redeploy">
+    Click **Redeploy** for changes to take effect.
+  </Step>
+</Steps>
+
+## Storage Configuration
+
+The Coolify deployment uses MinIO by default. For production:
+
+### Option 1: Coolify Persistent Storage (Default)
+
+Coolify creates Docker volumes for:
+- MySQL data
+- MinIO data (videos)
+
+Volumes persist across deployments.
+
+<Warning>
+  **Back up these volumes regularly**. Coolify doesn't provide automatic backups.
+</Warning>
+
+### Option 2: External S3
+
+For better reliability, use external S3:
+
+<Steps>
+  <Step title="Choose S3 Provider">
+    - AWS S3
+    - Backblaze B2
+    - Cloudflare R2
+    - Wasabi
+  </Step>
+
+  <Step title="Create Bucket">
+    Create a public bucket in your S3 provider.
+  </Step>
+
+  <Step title="Update Environment Variables">
+    ```bash
+    CAP_AWS_BUCKET=your-bucket-name
+    CAP_AWS_REGION=us-east-1
+    CAP_AWS_ACCESS_KEY=your-access-key
+    CAP_AWS_SECRET_KEY=your-secret-key
+    S3_PUBLIC_ENDPOINT=https://s3.amazonaws.com
+    S3_PATH_STYLE=false
+    ```
+  </Step>
+
+  <Step title="Remove MinIO Service (Optional)">
+    Edit `docker-compose.coolify.yml` to remove MinIO services and redeploy.
+  </Step>
+</Steps>
+
+See [S3 Storage](/self-hosting/s3-storage) for provider-specific guides.
+
+## Updates & Redeployment
+
+### Manual Update
+
+<Steps>
+  <Step title="Pull Latest">
+    Coolify automatically pulls the latest code from GitHub.
+  </Step>
+
+  <Step title="Redeploy">
+    Click **Redeploy** in the Coolify UI.
+  </Step>
+
+  <Step title="Monitor">
+    Watch logs for successful deployment.
+  </Step>
+</Steps>
+
+### Automatic Updates
+
+Enable automatic deployments on git push:
+
+1. Go to project **Settings**
+2. Enable **Automatic Deployment**
+3. Choose deployment trigger:
+   - On git push to branch
+   - On webhook
+   - Scheduled (cron)
+
+<Note>
+  For stability, we recommend manual updates for production.
+</Note>
+
+## Monitoring
+
+### Service Logs
+
+1. Click on service (e.g., **cap-web**)
+2. Click **Logs**
+3. View real-time logs or filter by time
+
+### Resource Usage
+
+Coolify shows:
+- CPU usage per service
+- Memory usage
+- Network traffic
+- Container status
+
+Access via service **Metrics** tab.
+
+### Health Checks
+
+Coolify monitors health check endpoints:
+
+- Cap Web: `http://127.0.0.1:3000/`
+- Media Server: `http://localhost:3456/health`
+- MySQL: Built-in health check
+- MinIO: Built-in health check
+
+Unhealthy services are automatically restarted.
+
+## Backups
+
+### Database Backup
+
+Create scheduled backup:
+
+```bash
+# SSH into Coolify server
+ssh user@coolify-server
+
+# Find MySQL container
+docker ps | grep mysql
+
+# Create backup
+docker exec cap-mysql mysqldump -u cap -p cap > /backups/cap-$(date +%Y%m%d).sql
+```
+
+Schedule with cron:
+
+```bash
+# Daily backup at 2 AM
+0 2 * * * /path/to/backup-script.sh
+```
+
+### MinIO Backup
+
+If using Coolify MinIO:
+
+```bash
+# Install mc (MinIO client)
+docker run -it --rm --network coolify minio/mc \
+  cp -r cap-minio/cap /backups/minio-$(date +%Y%m%d)
+```
+
+<Note>
+  For production, external S3 with versioning is more reliable than manual backups.
+</Note>
+
+## Scaling
+
+### Vertical Scaling
+
+Increase resources for a service:
+
+1. Click service in Coolify
+2. Go to **Resource Limits**
+3. Set:
+   - Memory limit (e.g., 4GB)
+   - CPU limit (e.g., 2 cores)
+4. Restart service
+
+### Horizontal Scaling
+
+Coolify supports Docker Swarm for multi-container scaling:
+
+1. Convert Coolify to Swarm mode
+2. Scale services:
+   ```bash
+   docker service scale cap_cap-web=3
+   ```
+
+See [Scaling guide](/self-hosting/scaling) for details.
+
+## Troubleshooting
+
+### Service Won't Start
+
+1. Check logs for errors
+2. Verify environment variables are set
+3. Check if ports are available
+4. Restart service in Coolify UI
+
+### SSL Certificate Issues
+
+1. Verify domain DNS points to Coolify server
+2. Check Traefik logs:
+   ```bash
+   docker logs coolify-proxy
+   ```
+3. Ensure ports 80 and 443 are open
+4. Manually trigger certificate renewal in Coolify
+
+### Database Connection Errors
+
+1. Check if MySQL service is running
+2. Verify `DATABASE_URL` format
+3. Check network connectivity:
+   ```bash
+   docker exec cap-web ping mysql
+   ```
+
+### Out of Disk Space
+
+1. Check Docker disk usage:
+   ```bash
+   docker system df
+   ```
+2. Clean up unused images:
+   ```bash
+   docker system prune -a
+   ```
+3. Consider external S3 to save space
+
+### MinIO Not Accessible
+
+1. Verify MinIO domain is configured
+2. Check MinIO logs in Coolify
+3. Test bucket access:
+   ```bash
+   docker exec cap-minio mc ls local/
+   ```
+
+## Migration to Coolify
+
+Migrate from Docker Compose or Railway:
+
+<Steps>
+  <Step title="Export Data">
+    From your existing deployment:
+
+    ```bash
+    # Export database
+    docker exec mysql mysqldump -u cap -p cap > backup.sql
+
+    # Export MinIO data
+    docker exec minio mc mirror local/cap ./backup
+    ```
+  </Step>
+
+  <Step title="Deploy on Coolify">
+    Follow the deployment steps above.
+  </Step>
+
+  <Step title="Import Data">
+    ```bash
+    # Import database
+    cat backup.sql | docker exec -i cap-mysql mysql -u cap -p cap
+
+    # Import MinIO
+    docker exec minio mc mirror ./backup local/cap
+    ```
+  </Step>
+
+  <Step title="Update DNS">
+    Point your domain to the Coolify server.
+  </Step>
+
+  <Step title="Test">
+    Verify videos load and users can log in.
+  </Step>
+</Steps>
+
+## Advanced Configuration
+
+### Custom Traefik Rules
+
+Add custom routing or middleware:
+
+1. Edit service in Coolify
+2. Add Traefik labels in **Advanced** section
+3. Example for rate limiting:
+   ```yaml
+   labels:
+     - "traefik.http.middlewares.ratelimit.ratelimit.average=100"
+   ```
+
+### Connect to External Database
+
+Use managed database service:
+
+1. Remove MySQL from docker-compose.coolify.yml
+2. Update `DATABASE_URL`:
+   ```bash
+   DATABASE_URL=mysql://user:pass@external-db.com:3306/cap
+   ```
+3. Redeploy
+
+### Multiple Environments
+
+Deploy staging and production:
+
+1. Create two Coolify projects: "Cap Production" and "Cap Staging"
+2. Use different branches:
+   - Production: `main`
+   - Staging: `develop`
+3. Use different domains
+4. Configure separate environment variables
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Email Setup" icon="envelope" href="/self-hosting/email-setup">
+    Configure email with Resend
+  </Card>
+  <Card title="S3 Storage" icon="database" href="/self-hosting/s3-storage">
+    Switch to external S3
+  </Card>
+  <Card title="Environment Variables" icon="gear" href="/self-hosting/environment-variables">
+    Complete configuration reference
+  </Card>
+  <Card title="Troubleshooting" icon="wrench" href="/self-hosting/troubleshooting">
+    Common issues and solutions
+  </Card>
+</CardGroup>

@@ -1,0 +1,243 @@
+---
+title: 'Camera Setup'
+description: 'Configure camera settings and picture-in-picture for your recordings'
+---
+
+## Camera Overview
+
+Cap Desktop supports adding your webcam as a picture-in-picture overlay to any recording. The camera feed can be customized, repositioned, and toggled during recording.
+
+## Selecting a Camera
+
+### Before Recording
+
+1. Open the Cap main window
+2. In the **Camera** dropdown, choose from available cameras
+3. Select **No Camera** to record without camera overlay
+
+<Info>
+  Cap automatically detects all connected cameras and displays their resolution and frame rate capabilities.
+</Info>
+
+### Available Camera Info
+
+Each camera listing shows:
+
+- **Device name**: The camera model or label
+- **Resolution**: Maximum supported resolution (e.g., 1920×1080)
+- **Frame rate**: Maximum supported fps (e.g., 30fps)
+
+### During Recording
+
+You can change camera inputs mid-recording:
+
+1. Click the **Settings** icon in the recording control bar
+2. Select a different camera from the menu
+3. Or disable the camera by selecting **No Webcam**
+
+<Warning>
+  Changing camera input during recording will pause the recording momentarily. The change is locked if you started recording without a camera.
+</Warning>
+
+## Camera Preview Window
+
+When recording with a camera, a floating preview window displays your camera feed:
+
+### Opening the Camera Window
+
+- The camera window opens automatically when recording starts
+- Click **Show Camera Preview** in the recording settings menu to toggle
+- Or enable it through the camera preview window controls
+
+<Note>
+  You can record with camera input enabled but keep the preview window hidden.
+</Note>
+
+## Camera Window Customization
+
+### Window Shape
+
+Choose from three camera window shapes:
+
+<CardGroup cols={3}>
+  <Card title="Round" icon="circle">
+    Classic circular camera overlay
+  </Card>
+  <Card title="Square" icon="square">
+    Rounded square with modern look
+  </Card>
+  <Card title="Full" icon="rectangle-wide">
+    Full rectangular window matching camera aspect ratio
+  </Card>
+</CardGroup>
+
+Cycle through shapes by clicking the shape icon in the camera window controls.
+
+### Window Size
+
+- **Small**: 230px (default)
+- **Large**: 400px
+- **Custom**: Resize by dragging the corners of the camera window
+
+<Tip>
+  Click the enlarge icon to toggle between small and large presets quickly.
+</Tip>
+
+### Resizing the Camera Window
+
+1. Hover over any corner of the camera window
+2. Click and drag the corner handles to resize
+3. The window maintains aspect ratio based on your camera feed
+4. Minimum size: 150px
+5. Maximum size: 600px
+
+### Mirror Mode
+
+Enable mirror mode to flip the camera feed horizontally:
+
+1. Click the **Mirror** icon (arrows) in camera window controls
+2. This flips the video like looking in a mirror
+3. Useful for reading text or showing demonstrations
+
+## Camera Window Position
+
+### Positioning
+
+- **Drag** the camera window anywhere on screen
+- Position is automatically saved and restored
+- The window stays within screen boundaries
+
+### Default Position
+
+On first launch, the camera window appears in the bottom-right corner of your primary display.
+
+### Camera Only Mode
+
+When using **Camera Only** recording mode:
+
+- Camera window is larger by default (400px)
+- Window shape is set to **Full** for maximum quality
+- Window is automatically centered on screen
+
+## Camera Window Controls
+
+Hover over the camera window to reveal controls:
+
+<Steps>
+  <Step title="Close">
+    Close the camera preview window (camera still records)
+  </Step>
+  <Step title="Size">
+    Toggle between small and large presets
+  </Step>
+  <Step title="Shape">
+    Cycle through round, square, and full shapes
+  </Step>
+  <Step title="Mirror">
+    Toggle horizontal flip
+  </Step>
+</Steps>
+
+## Camera Disconnection
+
+If your camera disconnects during recording:
+
+1. A **"Camera disconnected"** overlay appears on the preview
+2. Recording continues without camera feed
+3. Reconnect the camera to resume camera capture
+4. Cap will automatically detect the reconnected device
+
+<Info>
+  The recording control bar shows a warning icon when camera is disconnected.
+</Info>
+
+## Camera Permissions
+
+### macOS
+
+1. Go to **System Settings** → **Privacy & Security** → **Camera**
+2. Enable **Cap** in the list
+3. Restart Cap if necessary
+
+### Windows
+
+1. Go to **Settings** → **Privacy** → **Camera**
+2. Enable **Allow apps to access your camera**
+3. Ensure Cap is allowed in the list
+
+### Linux
+
+Camera access is typically granted automatically. If issues occur, check:
+
+- Camera device permissions in `/dev/video*`
+- User is in the `video` group
+
+## Native vs Legacy Preview
+
+<Tabs>
+  <Tab title="Native Preview (macOS)">
+    Uses hardware-accelerated rendering for better performance:
+    
+    - Lower CPU usage
+    - Smoother playback
+    - Enabled by default on macOS
+    
+    Enable in **Settings → General → Enable native camera preview**
+  </Tab>
+  
+  <Tab title="Legacy Preview">
+    Software-based rendering:
+    
+    - Compatible with all platforms
+    - Used on Windows and Linux
+    - Fallback option for macOS
+  </Tab>
+</Tabs>
+
+## Recording Locked Inputs
+
+<Warning>
+  If you start recording WITHOUT a camera, you cannot add a camera mid-recording. Similarly, starting WITH a camera locks you into using camera input (though you can switch between cameras).
+</Warning>
+
+This prevents issues with recording format changes mid-session.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Camera not detected">
+    - Ensure the camera is properly connected
+    - Check camera permissions in system settings
+    - Try disconnecting and reconnecting the camera
+    - Restart Cap
+  </Accordion>
+  
+  <Accordion title="Camera preview is black">
+    - Another application may be using the camera
+    - Close other apps that use the camera (Zoom, Skype, etc.)
+    - Check camera privacy settings
+  </Accordion>
+  
+  <Accordion title="Camera preview is laggy">
+    - Lower the maximum FPS in General Settings
+    - Try disabling native camera preview
+    - Close unnecessary applications
+  </Accordion>
+  
+  <Accordion title="Camera window disappears">
+    - Check if another window is covering it
+    - Close and reopen using the recording controls
+    - Window position may be off-screen after display changes
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Recording" icon="record-vinyl" href="/desktop/recording">
+    Learn how to start and manage recordings
+  </Card>
+  <Card title="Settings" icon="gear" href="/desktop/settings">
+    Configure all Cap Desktop settings
+  </Card>
+</CardGroup>

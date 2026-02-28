@@ -1,0 +1,251 @@
+---
+title: Export Command
+description: Export Cap project files to MP4 videos
+---
+
+## Overview
+
+The `export` command converts a `.cap` project file to a standard MP4 video file.
+
+## Usage
+
+```bash
+cap export <PROJECT_PATH> [OUTPUT_PATH]
+```
+
+## Arguments
+
+<ParamField path="PROJECT_PATH" type="path" required>
+  Path to the `.cap` project file to export.
+</ParamField>
+
+<ParamField path="OUTPUT_PATH" type="path">
+  Optional path for the output MP4 file. If not specified, the file is saved to a temporary location.
+</ParamField>
+
+## Export Settings
+
+The export command uses the following default settings:
+
+<ResponseField name="fps" type="number" default="60">
+  Frame rate of the output video
+</ResponseField>
+
+<ResponseField name="resolution" type="object" default="1920x1080">
+  Base resolution for the output video
+  
+  <Expandable title="resolution details">
+    <ResponseField name="width" type="number" default="1920">
+      Video width in pixels
+    </ResponseField>
+    <ResponseField name="height" type="number" default="1080">
+      Video height in pixels
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="compression" type="string" default="Maximum">
+  Compression level applied to the output video. Set to maximum for smallest file size.
+</ResponseField>
+
+<ResponseField name="codec" type="string" default="H.264">
+  Video codec used for encoding
+</ResponseField>
+
+<ResponseField name="force_ffmpeg_decoder" type="boolean" default="false">
+  Whether to force using FFmpeg for decoding instead of hardware decoders
+</ResponseField>
+
+## Examples
+
+### Basic Export
+
+Export to temporary location:
+
+```bash
+cap export recording.cap
+```
+
+### Export to Specific Location
+
+Export with custom output path:
+
+```bash
+cap export recording.cap output.mp4
+```
+
+### Export Multiple Files
+
+Batch export multiple recordings:
+
+```bash
+for file in *.cap; do
+  cap export "$file" "${file%.cap}.mp4"
+done
+```
+
+## Output
+
+During export, the command displays progress information. Upon completion:
+
+```
+Exported video to '/path/to/output.mp4'
+```
+
+## Technical Details
+
+### Export Process
+
+1. **Load Project:** Read the `.cap` project file
+2. **Initialize Exporter:** Set up export pipeline with configured settings
+3. **Render Frames:** Process each frame with effects and overlays
+4. **Encode:** Encode frames to H.264 using configured compression
+5. **Write File:** Save the final MP4 file
+
+### Implementation
+
+The export command is implemented in `apps/cli/src/main.rs:151-193`:
+
+```rust:apps/cli/src/main.rs
+struct Export {
+    project_path: PathBuf,
+    output_path: Option<PathBuf>,
+}
+
+impl Export {
+    async fn run(self) -> Result<(), String> {
+        let exporter_base = ExporterBase::builder(self.project_path)
+            .build()
+            .await
+            .map_err(|v| format!("Exporter build error: {v}"))?;
+
+        let exporter_output_path = Mp4ExportSettings {
+            fps: 60,
+            resolution_base: XY::new(1920, 1080),
+            compression: ExportCompression::Maximum,
+            custom_bpp: None,
+            force_ffmpeg_decoder: false,
+        }
+        .export(exporter_base, move |_f| true)
+        .await
+        .map_err(|v| format!("Exporter error: {v}"))?;
+
+        let output_path = if let Some(output_path) = self.output_path {
+            std::fs::copy(&exporter_output_path, &output_path).unwrap();
+            output_path
+        } else {
+            exporter_output_path
+        };
+
+        info!("Exported video to '{}'", output_path.display());
+        Ok(())
+    }
+}
+```
+
+## Export Settings Deep Dive
+
+### Resolution Base
+
+The `resolution_base` setting defines the maximum dimensions:
+
+- Video scales down if source is larger
+- Maintains aspect ratio
+- Default: 1920x1080 (Full HD)
+
+### Compression Options
+
+Currently, the CLI uses `ExportCompression::Maximum`:
+
+- Optimizes for smallest file size
+- May increase export time
+- Maintains visual quality
+
+### Frame Rate
+
+Default 60 FPS provides:
+
+- Smooth playback
+- Clear cursor movement
+- Professional quality
+
+## Performance Considerations
+
+<AccordionGroup>
+  <Accordion title="Export Speed">
+    Export speed depends on:
+    - Source resolution and frame rate
+    - Recording duration
+    - CPU performance
+    - Available hardware encoders
+    
+    Typical: 1-2x real-time (30min recording = 15-30min export)
+  </Accordion>
+  
+  <Accordion title="Hardware Acceleration">
+    The exporter uses hardware acceleration when available:
+    - macOS: VideoToolbox (AVFoundation)
+    - Windows: Media Foundation
+    - Fallback: FFmpeg software encoding
+  </Accordion>
+  
+  <Accordion title="Memory Usage">
+    Memory usage scales with:
+    - Source video resolution
+    - Number of audio tracks
+    - Recording complexity
+    
+    Typical: 500MB - 2GB during export
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Export fails with 'Exporter build error'">
+    - Verify the .cap file is not corrupted
+    - Ensure sufficient disk space
+    - Check file permissions
+    - Try exporting to a different location
+  </Accordion>
+  
+  <Accordion title="Output file is too large">
+    The CLI uses maximum compression by default. File size depends on:
+    - Recording duration
+    - Source resolution
+    - Content complexity (static vs. dynamic)
+    
+    Consider using video editing software for additional compression.
+  </Accordion>
+  
+  <Accordion title="Export is very slow">
+    If export is slower than expected:
+    - Close other applications
+    - Ensure hardware acceleration is available
+    - Check CPU/disk usage
+    - Try setting `force_ffmpeg_decoder: false`
+  </Accordion>
+</AccordionGroup>
+
+## Output Video Specifications
+
+The exported MP4 file includes:
+
+- **Container:** MP4 (MPEG-4 Part 14)
+- **Video Codec:** H.264 (AVC)
+- **Audio Codec:** AAC
+- **Frame Rate:** 60 FPS
+- **Resolution:** Up to 1920x1080 (scales down from source)
+- **Bit Rate:** Variable (optimized for compression)
+- **Color Space:** YUV 4:2:0
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Record Command" icon="circle" href="/cli/record">
+    Learn how to create recordings
+  </Card>
+  <Card title="CLI Overview" icon="terminal" href="/cli/overview">
+    Back to CLI overview
+  </Card>
+</CardGroup>

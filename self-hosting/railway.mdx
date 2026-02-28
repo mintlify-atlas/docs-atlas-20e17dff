@@ -1,0 +1,464 @@
+---
+title: "Railway Deployment"
+description: "One-click deployment of Cap on Railway's managed platform"
+---
+
+Railway provides the easiest way to deploy Cap with managed infrastructure, automatic SSL, and zero server maintenance.
+
+## Deploy to Railway
+
+Click this button to deploy Cap in under 2 minutes:
+
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template/PwpGcf)
+
+## What Gets Deployed
+
+The Railway template creates:
+
+- **Cap Web** - Next.js application (automatically scaled)
+- **Media Server** - FFmpeg processing service
+- **MySQL Database** - Managed MySQL 8.0 instance
+- **MinIO** - S3-compatible object storage
+- **Automatic SSL** - Free SSL certificates for your domain
+- **Environment Variables** - Pre-configured with secure defaults
+
+## Deployment Steps
+
+<Steps>
+  <Step title="Click Deploy Button">
+    Click the [Deploy on Railway](https://railway.com/new/template/PwpGcf) button above.
+
+    You'll be prompted to:
+    - Sign in with GitHub (or create a Railway account)
+    - Select which GitHub organization/account to use
+  </Step>
+
+  <Step title="Configure Environment">
+    Railway will show a form with environment variables.
+
+    **Required variables** (Railway generates secure defaults):
+    - `NEXTAUTH_SECRET` - Session encryption key
+    - `DATABASE_ENCRYPTION_KEY` - Database field encryption
+    - `MEDIA_SERVER_WEBHOOK_SECRET` - Webhook authentication
+    - `MYSQL_PASSWORD` - Database password
+    - `MYSQL_ROOT_PASSWORD` - Database root password
+    - `MINIO_ROOT_PASSWORD` - MinIO admin password
+
+    **Optional variables**:
+    - `RESEND_API_KEY` - For sending login emails
+    - `RESEND_FROM_DOMAIN` - Your domain for emails
+    - `DEEPGRAM_API_KEY` - For AI transcription
+    - `GROQ_API_KEY` - For AI summaries
+
+    <Note>
+      You can add optional variables later in the Railway dashboard.
+    </Note>
+  </Step>
+
+  <Step title="Deploy">
+    Click **Deploy** to start the deployment.
+
+    Railway will:
+    - Provision all services
+    - Build Docker images
+    - Configure networking
+    - Generate a public URL
+
+    This takes 3-5 minutes.
+  </Step>
+
+  <Step title="Get Your URL">
+    Once deployed, Railway provides a public URL like:
+
+    ```
+    https://cap-web-production-xxxx.up.railway.app
+    ```
+
+    Click the URL or find it in the Railway dashboard under the `cap-web` service.
+  </Step>
+
+  <Step title="Get Login Link">
+    Without email configured, login links appear in the deploy logs:
+
+    1. Click on the `cap-web` service in Railway dashboard
+    2. Click **View Logs**
+    3. Look for:
+    ```
+    Login link: https://your-app.railway.app/api/auth/callback/email?token=...
+    ```
+
+    Copy this URL and paste it into your browser to log in.
+  </Step>
+</Steps>
+
+## Custom Domain
+
+Railway provides a free `.railway.app` subdomain, but you can use your own domain:
+
+<Steps>
+  <Step title="Add Domain in Railway">
+    1. Go to your `cap-web` service in Railway
+    2. Click **Settings** → **Domains**
+    3. Click **Add Domain**
+    4. Enter your domain (e.g., `cap.yourdomain.com`)
+  </Step>
+
+  <Step title="Configure DNS">
+    Railway will show DNS records to add:
+
+    ```
+    Type: CNAME
+    Name: cap
+    Value: your-app.railway.app
+    ```
+
+    Add this record in your domain registrar's DNS settings.
+  </Step>
+
+  <Step title="Update Environment Variables">
+    After DNS propagates:
+
+    1. Go to `cap-web` service → **Variables**
+    2. Update these variables:
+    ```bash
+    WEB_URL=https://cap.yourdomain.com
+    NEXTAUTH_URL=https://cap.yourdomain.com
+    ```
+    3. Railway will automatically redeploy
+  </Step>
+
+  <Step title="Configure MinIO Domain (Optional)">
+    For better performance, add a separate domain for MinIO:
+
+    1. Add domain to MinIO service: `s3.yourdomain.com`
+    2. Configure DNS (same as above)
+    3. Update `cap-web` variables:
+    ```bash
+    S3_PUBLIC_ENDPOINT=https://s3.yourdomain.com
+    ```
+  </Step>
+</Steps>
+
+<Note>
+  SSL certificates are automatically provisioned by Railway. No manual configuration needed.
+</Note>
+
+## Email Configuration
+
+To send login emails instead of using log links:
+
+<Steps>
+  <Step title="Create Resend Account">
+    1. Sign up at [resend.com](https://resend.com)
+    2. Verify your domain
+    3. Create an API key
+  </Step>
+
+  <Step title="Add Environment Variables">
+    In Railway dashboard, add to `cap-web` service:
+
+    ```bash
+    RESEND_API_KEY=re_xxxxxxxxxxxxx
+    RESEND_FROM_DOMAIN=yourdomain.com
+    ```
+
+    Railway will redeploy automatically.
+  </Step>
+
+  <Step title="Test Email">
+    Try logging in - you should receive an email with the login link.
+  </Step>
+</Steps>
+
+See [Email Setup](/self-hosting/email-setup) for detailed instructions.
+
+## AI Features
+
+Enable AI transcription and summaries:
+
+<Steps>
+  <Step title="Get API Keys">
+    - **Deepgram** - [Sign up](https://deepgram.com) for transcription
+    - **Groq** - [Sign up](https://groq.com) for fast AI summaries (recommended)
+    - **OpenAI** - [Alternative](https://openai.com) for AI summaries
+  </Step>
+
+  <Step title="Add to Railway">
+    In `cap-web` service variables:
+
+    ```bash
+    DEEPGRAM_API_KEY=your-deepgram-key
+    GROQ_API_KEY=your-groq-key
+    ```
+  </Step>
+</Steps>
+
+## Connect Cap Desktop
+
+<Steps>
+  <Step title="Download Cap Desktop">
+    Get the desktop app from [cap.so/download](https://cap.so/download)
+  </Step>
+
+  <Step title="Configure Server URL">
+    1. Open Cap Desktop
+    2. Go to **Settings**
+    3. Set **Cap Server URL** to your Railway URL:
+    ```
+    https://cap.yourdomain.com
+    ```
+    or
+    ```
+    https://cap-web-production-xxxx.up.railway.app
+    ```
+  </Step>
+
+  <Step title="Test Upload">
+    Record a video and share it - it will upload to your Railway instance.
+  </Step>
+</Steps>
+
+## Monitoring & Logs
+
+### View Logs
+
+1. Go to Railway dashboard
+2. Click on a service (e.g., `cap-web`)
+3. Click **View Logs**
+
+Logs show:
+- Application startup
+- HTTP requests
+- Errors and warnings
+- Login links (if email not configured)
+
+### Metrics
+
+Railway provides built-in metrics:
+
+1. Click on a service
+2. Click **Metrics** tab
+
+View:
+- CPU usage
+- Memory usage
+- Network traffic
+- Response times
+
+### Alerts
+
+Set up alerts for service failures:
+
+1. Go to project settings
+2. Click **Integrations**
+3. Add Slack or Discord webhook
+
+## Scaling
+
+### Automatic Scaling
+
+Railway automatically scales based on:
+- CPU usage
+- Memory usage
+- Request volume
+
+No configuration needed for basic autoscaling.
+
+### Vertical Scaling
+
+Increase resources for individual services:
+
+1. Click on service (e.g., `cap-web`)
+2. Go to **Settings** → **Resources**
+3. Adjust:
+   - Memory limit (default: 8GB)
+   - CPU shares
+
+<Warning>
+  Higher resource limits increase Railway costs. See [pricing](https://railway.app/pricing).
+</Warning>
+
+### Database Scaling
+
+For high traffic:
+
+1. Consider upgrading to Railway's managed MySQL
+2. Or use external managed database:
+   - [PlanetScale](https://planetscale.com)
+   - [Amazon RDS](https://aws.amazon.com/rds/)
+
+   Update `DATABASE_URL` environment variable accordingly.
+
+## Storage Considerations
+
+The template uses MinIO for object storage, which stores data on Railway's ephemeral disk.
+
+<Warning>
+  Railway containers can restart and lose ephemeral data. For production, use external S3-compatible storage.
+</Warning>
+
+### Use External S3
+
+Recommended for production:
+
+<Steps>
+  <Step title="Choose S3 Provider">
+    - [AWS S3](https://aws.amazon.com/s3/) - Most compatible
+    - [Backblaze B2](https://www.backblaze.com/b2/) - Cost-effective
+    - [Cloudflare R2](https://www.cloudflare.com/products/r2/) - Zero egress fees
+  </Step>
+
+  <Step title="Create Bucket">
+    Create a bucket in your S3 provider with public read access.
+  </Step>
+
+  <Step title="Update Environment Variables">
+    In Railway `cap-web` service:
+
+    ```bash
+    CAP_AWS_BUCKET=your-bucket-name
+    CAP_AWS_REGION=us-east-1
+    CAP_AWS_ACCESS_KEY=your-access-key
+    CAP_AWS_SECRET_KEY=your-secret-key
+    S3_PUBLIC_ENDPOINT=https://s3.amazonaws.com
+    S3_PATH_STYLE=false
+    ```
+  </Step>
+
+  <Step title="Remove MinIO Service">
+    Delete the `minio` service from Railway project (optional).
+  </Step>
+</Steps>
+
+See [S3 Storage](/self-hosting/s3-storage) for detailed configuration.
+
+## Costs
+
+Railway pricing:
+
+- **Free Trial** - $5 credit, no credit card required
+- **Hobby Plan** - $5/month + usage
+- **Pro Plan** - $20/month + usage
+
+**Estimated monthly cost** for Cap (Hobby plan):
+- Base: $5
+- 4 services running 24/7: ~$15-25
+- **Total: ~$20-30/month**
+
+<Note>
+  Actual costs vary based on:
+  - Number of users
+  - Video upload volume
+  - Storage usage (if using Railway MinIO)
+  - Traffic volume
+</Note>
+
+Using external S3 storage significantly reduces Railway costs.
+
+## Backups
+
+Railway doesn't provide automatic backups. Implement backup strategy:
+
+### Database Backups
+
+```bash
+# Install Railway CLI
+npm i -g @railway/cli
+
+# Login
+railway login
+
+# Link to your project
+railway link
+
+# Create backup
+railway run mysqldump -h mysql -u cap -p cap > backup.sql
+```
+
+Schedule this with cron or GitHub Actions.
+
+### Storage Backups
+
+If using Railway MinIO, download volumes periodically:
+
+```bash
+railway run mc mirror local/cap ./backup
+```
+
+For production, use external S3 with versioning enabled.
+
+## Troubleshooting
+
+### Service Won't Start
+
+1. Check logs for errors
+2. Verify environment variables are set
+3. Restart service:
+   - Click service → **Settings** → **Restart**
+
+### Database Connection Errors
+
+1. Verify MySQL service is running
+2. Check `DATABASE_URL` format:
+   ```
+   mysql://user:password@host:port/database
+   ```
+3. Railway internal networking uses service names (e.g., `mysql:3306`)
+
+### Out of Memory
+
+1. Check service metrics
+2. Increase memory limit in service settings
+3. Consider splitting services across multiple Railway projects
+
+### Deployment Fails
+
+1. Check build logs
+2. Verify Dockerfile syntax
+3. Try manual redeploy:
+   - Service → **Settings** → **Redeploy**
+
+## Migration from Railway
+
+To migrate to self-hosted Docker Compose:
+
+<Steps>
+  <Step title="Backup Data">
+    Export database and files using Railway CLI (see Backups above).
+  </Step>
+
+  <Step title="Set Up Docker Compose">
+    Follow [Docker Compose guide](/self-hosting/docker-compose).
+  </Step>
+
+  <Step title="Import Data">
+    ```bash
+    # Import database
+    docker compose exec -T mysql mysql -u cap -p cap < backup.sql
+
+    # Import files to MinIO
+    docker compose exec minio mc mirror ./backup local/cap
+    ```
+  </Step>
+
+  <Step title="Update DNS">
+    Point your domain to your new server.
+  </Step>
+</Steps>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Email Setup" icon="envelope" href="/self-hosting/email-setup">
+    Configure email delivery with Resend
+  </Card>
+  <Card title="S3 Storage" icon="database" href="/self-hosting/s3-storage">
+    Switch to external S3 for production
+  </Card>
+  <Card title="Environment Variables" icon="gear" href="/self-hosting/environment-variables">
+    Complete configuration reference
+  </Card>
+  <Card title="Troubleshooting" icon="wrench" href="/self-hosting/troubleshooting">
+    Common issues and solutions
+  </Card>
+</CardGroup>

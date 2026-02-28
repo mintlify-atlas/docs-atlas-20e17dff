@@ -1,0 +1,772 @@
+---
+title: "Troubleshooting"
+description: "Common issues and solutions for self-hosted Cap deployments"
+---
+
+This guide covers common issues you might encounter when self-hosting Cap and how to resolve them.
+
+## General Debugging
+
+### Check Service Status
+
+Verify all services are running:
+
+```bash
+docker compose ps
+```
+
+Expected output:
+```
+NAME                 STATUS
+cap-web              Up (healthy)
+cap-media-server     Up (healthy)
+cap-mysql            Up (healthy)
+cap-minio            Up (healthy)
+cap-minio-setup      Exited (0)
+```
+
+### View Logs
+
+```bash
+# All services
+docker compose logs -f
+
+# Specific service
+docker compose logs cap-web -f
+
+# Last 100 lines
+docker compose logs --tail=100 cap-web
+
+# Since specific time
+docker compose logs --since 10m cap-web
+```
+
+### Restart Services
+
+```bash
+# Restart all
+docker compose restart
+
+# Restart specific service
+docker compose restart cap-web
+
+# Full restart (recreate containers)
+docker compose down
+docker compose up -d
+```
+
+## Installation Issues
+
+### Port Already in Use
+
+**Error**:
+```
+Error starting userland proxy: listen tcp 0.0.0.0:3000: bind: address already in use
+```
+
+**Solution**: Find and stop the process using the port
+
+```bash
+# Find process
+sudo lsof -i :3000
+
+# Or
+sudo netstat -tulpn | grep :3000
+
+# Kill process
+sudo kill -9 <PID>
+
+# Or change Cap port
+echo "CAP_PORT=8080" >> .env
+docker compose down
+docker compose up -d
+```
+
+### Docker Not Running
+
+**Error**:
+```
+Cannot connect to the Docker daemon
+```
+
+**Solution**:
+
+```bash
+# Start Docker
+sudo systemctl start docker
+
+# Enable on boot
+sudo systemctl enable docker
+
+# Check status
+sudo systemctl status docker
+```
+
+### Permission Denied
+
+**Error**:
+```
+permission denied while trying to connect to the Docker daemon socket
+```
+
+**Solution**:
+
+```bash
+# Add user to docker group
+sudo usermod -aG docker $USER
+
+# Log out and back in
+# Or run:
+newgrp docker
+
+# Test
+docker ps
+```
+
+### Image Pull Fails
+
+**Error**:
+```
+Error response from daemon: manifest for ghcr.io/capsoftware/cap-web:latest not found
+```
+
+**Solution**:
+
+```bash
+# Check internet connection
+ping -c 3 github.com
+
+# Try pulling manually
+docker pull ghcr.io/capsoftware/cap-web:latest
+
+# If behind proxy, configure Docker proxy
+sudo mkdir -p /etc/systemd/system/docker.service.d
+sudo vi /etc/systemd/system/docker.service.d/http-proxy.conf
+# Add:
+# [Service]
+# Environment="HTTP_PROXY=http://proxy.example.com:80"
+# Environment="HTTPS_PROXY=https://proxy.example.com:443"
+```
+
+## Application Issues
+
+### Can't Access Cap Web
+
+**Symptom**: Browser shows "Connection refused" at `http://localhost:3000`
+
+<Steps>
+  <Step title="Check if container is running">
+    ```bash
+    docker compose ps cap-web
+    ```
+
+    If not running:
+    ```bash
+    docker compose up -d cap-web
+    ```
+  </Step>
+
+  <Step title="Check health status">
+    ```bash
+    docker inspect cap-web | grep -A 10 Health
+    ```
+
+    If unhealthy, check logs:
+    ```bash
+    docker compose logs cap-web
+    ```
+  </Step>
+
+  <Step title="Test from inside container">
+    ```bash
+    docker compose exec cap-web wget -O- http://localhost:3000
+    ```
+
+    If this works but external access doesn't, it's a networking issue.
+  </Step>
+
+  <Step title="Check firewall">
+    ```bash
+    sudo ufw status
+    sudo ufw allow 3000/tcp
+    ```
+  </Step>
+</Steps>
+
+### Database Connection Errors
+
+**Error in logs**:
+```
+Error: connect ECONNREFUSED mysql:3306
+```
+
+<AccordionGroup>
+  <Accordion title="MySQL not ready">
+    Wait for MySQL to finish initializing:
+
+    ```bash
+    docker compose logs mysql | grep "ready for connections"
+    ```
+
+    If not ready, wait 30-60 seconds and check again.
+  </Accordion>
+
+  <Accordion title="Wrong DATABASE_URL">
+    Verify connection string:
+
+    ```bash
+    docker compose exec cap-web env | grep DATABASE_URL
+    ```
+
+    Should be:
+    ```
+    mysql://cap:password@mysql:3306/cap
+    ```
+
+    Fix in `.env` and restart:
+    ```bash
+    docker compose restart cap-web
+    ```
+  </Accordion>
+
+  <Accordion title="Network issue">
+    Test connection from cap-web to mysql:
+
+    ```bash
+    docker compose exec cap-web ping mysql
+    docker compose exec cap-web nc -zv mysql 3306
+    ```
+
+    If fails, recreate network:
+    ```bash
+    docker compose down
+    docker network prune
+    docker compose up -d
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### S3/MinIO Errors
+
+**Error**: Videos won't upload or display
+
+<Steps>
+  <Step title="Check MinIO is running">
+    ```bash
+    docker compose ps minio
+    ```
+
+    Access console:
+    ```
+    http://localhost:9001
+    ```
+
+    Login with `MINIO_ROOT_USER` and `MINIO_ROOT_PASSWORD`
+  </Step>
+
+  <Step title="Verify bucket exists">
+    ```bash
+    docker compose exec minio mc ls local/
+    ```
+
+    Should show `cap` bucket. If not:
+    ```bash
+    docker compose exec minio mc mb local/cap
+    docker compose exec minio mc anonymous set download local/cap
+    ```
+  </Step>
+
+  <Step title="Check S3 credentials">
+    ```bash
+    docker compose exec cap-web env | grep CAP_AWS
+    ```
+
+    Verify:
+    - `CAP_AWS_ACCESS_KEY` matches `MINIO_ROOT_USER`
+    - `CAP_AWS_SECRET_KEY` matches `MINIO_ROOT_PASSWORD`
+  </Step>
+
+  <Step title="Test S3 upload">
+    ```bash
+    docker compose exec cap-web sh -c '
+      echo "test" > /tmp/test.txt
+      aws s3 cp /tmp/test.txt s3://cap/test.txt \
+        --endpoint-url $S3_INTERNAL_ENDPOINT
+    '
+    ```
+  </Step>
+</Steps>
+
+### Authentication Issues
+
+**Symptom**: Can't log in or session expires immediately
+
+<AccordionGroup>
+  <Accordion title="NEXTAUTH_SECRET not set">
+    ```bash
+    docker compose exec cap-web env | grep NEXTAUTH_SECRET
+    ```
+
+    If empty, generate and add to `.env`:
+    ```bash
+    openssl rand -hex 32
+    ```
+
+    Then:
+    ```bash .env
+    NEXTAUTH_SECRET=your-generated-secret
+    ```
+  </Accordion>
+
+  <Accordion title="NEXTAUTH_URL mismatch">
+    Must match actual access URL:
+
+    ```bash .env
+    # Local
+    NEXTAUTH_URL=http://localhost:3000
+
+    # Production
+    NEXTAUTH_URL=https://cap.yourdomain.com
+    ```
+  </Accordion>
+
+  <Accordion title="Cookie issues">
+    Clear browser cookies for your Cap domain and try again.
+
+    Or test in incognito/private mode.
+  </Accordion>
+
+  <Accordion title="Database sessions not working">
+    Check if sessions table exists:
+
+    ```bash
+    docker compose exec mysql mysql -u cap -p cap -e "SHOW TABLES LIKE 'session';"
+    ```
+
+    If empty, run migrations:
+    ```bash
+    docker compose exec cap-web pnpm db:push
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Email Issues
+
+### No Login Email Received
+
+<Steps>
+  <Step title="Check if Resend is configured">
+    ```bash
+    docker compose exec cap-web env | grep RESEND
+    ```
+
+    If empty, emails go to logs instead:
+    ```bash
+    docker compose logs cap-web | grep "Login link"
+    ```
+  </Step>
+
+  <Step title="Verify Resend API key">
+    Test with curl:
+    ```bash
+    curl -X POST 'https://api.resend.com/emails' \
+      -H "Authorization: Bearer $RESEND_API_KEY" \
+      -H 'Content-Type: application/json' \
+      -d '{
+        "from": "noreply@yourdomain.com",
+        "to": "test@example.com",
+        "subject": "Test",
+        "html": "<p>Test</p>"
+      }'
+    ```
+  </Step>
+
+  <Step title="Check spam folder">
+    Login emails might be marked as spam initially.
+  </Step>
+
+  <Step title="Verify domain">
+    In Resend dashboard, check domain is verified.
+  </Step>
+</Steps>
+
+### Email Sends but Errors in Logs
+
+```bash
+docker compose logs cap-web | grep -i "error\|fail"
+```
+
+Common errors:
+
+- `Invalid API key` - Wrong `RESEND_API_KEY`
+- `Domain not verified` - Verify domain in Resend
+- `Rate limit exceeded` - Wait or upgrade Resend plan
+
+## Video Processing Issues
+
+### Videos Stuck in Processing
+
+<Steps>
+  <Step title="Check media server logs">
+    ```bash
+    docker compose logs media-server
+    ```
+
+    Look for FFmpeg errors.
+  </Step>
+
+  <Step title="Verify media server is running">
+    ```bash
+    docker compose ps media-server
+    ```
+
+    Test health:
+    ```bash
+    curl http://localhost:3456/health
+    ```
+  </Step>
+
+  <Step title="Check MEDIA_SERVER_WEBHOOK_SECRET">
+    Must match between cap-web and media-server:
+
+    ```bash
+    docker compose exec cap-web env | grep MEDIA_SERVER_WEBHOOK_SECRET
+    docker compose exec media-server env | grep MEDIA_SERVER_WEBHOOK_SECRET
+    ```
+  </Step>
+
+  <Step title="Manually retry processing">
+    Find video in database and trigger reprocessing:
+
+    ```sql
+    docker compose exec mysql mysql -u cap -p cap
+
+    UPDATE videos SET status = 'pending' WHERE id = 'video-id';
+    ```
+  </Step>
+</Steps>
+
+### Video Playback Errors
+
+**Symptom**: Video uploaded but won't play
+
+<AccordionGroup>
+  <Accordion title="CORS errors in browser console">
+    F12 → Console shows:
+    ```
+    Access to video from origin 'https://cap.yourdomain.com' has been blocked by CORS
+    ```
+
+    **Fix**: Configure S3 CORS
+
+    MinIO:
+    ```bash
+    docker compose exec minio mc anonymous set public local/cap
+    ```
+
+    AWS S3: Add CORS configuration (see [S3 Storage](/self-hosting/s3-storage))
+  </Accordion>
+
+  <Accordion title="404 on video URL">
+    Verify file exists in S3:
+
+    ```bash
+    docker compose exec minio mc ls local/cap/videos/
+    ```
+
+    If missing, reprocess video.
+  </Accordion>
+
+  <Accordion title="Wrong S3_PUBLIC_ENDPOINT">
+    Video URL should be accessible from browser:
+
+    ```bash
+    curl -I http://localhost:9000/cap/videos/test.mp4
+    ```
+
+    Update `.env`:
+    ```bash
+    S3_PUBLIC_ENDPOINT=http://localhost:9000
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## SSL/HTTPS Issues
+
+### Certificate Not Obtained
+
+**Let's Encrypt errors in Caddy/Nginx logs**
+
+<Steps>
+  <Step title="Verify DNS">
+    ```bash
+    dig cap.yourdomain.com
+    nslookup cap.yourdomain.com
+    ```
+
+    Should point to your server IP.
+  </Step>
+
+  <Step title="Check port 80 is open">
+    ```bash
+    sudo ufw status | grep 80
+    telnet yourdomain.com 80
+    ```
+
+    Let's Encrypt requires port 80 for HTTP challenge.
+  </Step>
+
+  <Step title="Check rate limits">
+    Let's Encrypt limits:
+    - 50 certs per domain per week
+    - 5 failures per hour
+
+    Wait 1 hour or use staging:
+    ```bash
+    sudo certbot --nginx --staging
+    ```
+  </Step>
+</Steps>
+
+### Mixed Content Warnings
+
+**Browser**: "This page includes insecure resources"
+
+<Steps>
+  <Step title="Update all URLs to HTTPS">
+    ```bash .env
+    WEB_URL=https://cap.yourdomain.com
+    NEXTAUTH_URL=https://cap.yourdomain.com
+    S3_PUBLIC_ENDPOINT=https://s3.yourdomain.com
+    ```
+  </Step>
+
+  <Step title="Check video URLs in database">
+    If videos were uploaded before HTTPS, URLs might be HTTP.
+
+    Update:
+    ```sql
+    UPDATE videos 
+    SET thumbnail_url = REPLACE(thumbnail_url, 'http://', 'https://');
+    ```
+  </Step>
+</Steps>
+
+## Performance Issues
+
+### Slow Page Loads
+
+<Steps>
+  <Step title="Check resource usage">
+    ```bash
+    docker stats
+    ```
+
+    Look for high CPU or memory usage.
+  </Step>
+
+  <Step title="Check database performance">
+    ```bash
+    docker compose exec mysql mysql -u cap -p cap -e "SHOW PROCESSLIST;"
+    ```
+
+    Look for slow queries.
+  </Step>
+
+  <Step title="Enable database query logging">
+    ```sql
+    SET GLOBAL slow_query_log = 'ON';
+    SET GLOBAL long_query_time = 1;
+    ```
+
+    View slow queries:
+    ```bash
+    docker compose exec mysql cat /var/lib/mysql/slow-query.log
+    ```
+  </Step>
+
+  <Step title="Check network latency">
+    ```bash
+    docker compose exec cap-web ping mysql
+    docker compose exec cap-web ping minio
+    ```
+  </Step>
+</Steps>
+
+### High CPU Usage
+
+**Media server at 100% CPU**
+
+This is normal during video processing. FFmpeg is CPU-intensive.
+
+To reduce:
+- Process videos at lower quality
+- Add more media server workers
+- Use external transcoding service
+
+### Out of Memory
+
+**Error**: `Killed` or `OOMKilled`
+
+<Steps>
+  <Step title="Check memory usage">
+    ```bash
+    docker stats
+    free -h
+    ```
+  </Step>
+
+  <Step title="Increase Docker memory limits">
+    ```yaml docker-compose.yml
+    services:
+      cap-web:
+        deploy:
+          resources:
+            limits:
+              memory: 2G
+    ```
+  </Step>
+
+  <Step title="Add swap">
+    ```bash
+    sudo fallocate -l 4G /swapfile
+    sudo chmod 600 /swapfile
+    sudo mkswap /swapfile
+    sudo swapon /swapfile
+
+    # Make permanent
+    echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+    ```
+  </Step>
+</Steps>
+
+## Docker Issues
+
+### Disk Space Full
+
+```bash
+# Check Docker disk usage
+docker system df
+
+# Remove unused images
+docker image prune -a
+
+# Remove unused volumes
+docker volume prune
+
+# Full cleanup
+docker system prune -a --volumes
+```
+
+<Warning>
+  `docker system prune -a --volumes` removes ALL unused data. Be careful with volumes.
+</Warning>
+
+### Network Issues
+
+**Services can't communicate**
+
+```bash
+# Inspect network
+docker network inspect cap_cap-network
+
+# Recreate network
+docker compose down
+docker network prune
+docker compose up -d
+```
+
+### Container Won't Start
+
+```bash
+# Check exit code
+docker compose ps -a
+
+# View full logs
+docker compose logs --tail=500 <service-name>
+
+# Try starting in foreground
+docker compose up <service-name>
+
+# Remove and recreate
+docker compose rm -f <service-name>
+docker compose up -d <service-name>
+```
+
+## Complete Reset
+
+<Warning>
+  This deletes ALL data including videos, users, and database.
+</Warning>
+
+When all else fails:
+
+```bash
+# Stop and remove everything
+docker compose down -v
+
+# Remove images
+docker rmi ghcr.io/capsoftware/cap-web:latest
+docker rmi ghcr.io/capsoftware/cap-media-server:latest
+
+# Clean Docker
+docker system prune -a
+
+# Start fresh
+docker compose up -d
+```
+
+## Getting Help
+
+### Collect Debug Info
+
+Before asking for help, collect:
+
+```bash
+# System info
+uname -a
+docker --version
+docker compose version
+
+# Service status
+docker compose ps
+
+# Recent logs
+docker compose logs --tail=100 > cap-logs.txt
+
+# Environment (remove secrets!)
+docker compose exec cap-web env | grep -v "SECRET\|KEY\|PASSWORD"
+```
+
+### Where to Get Help
+
+- [GitHub Issues](https://github.com/CapSoftware/Cap/issues) - Report bugs
+- [GitHub Discussions](https://github.com/CapSoftware/Cap/discussions) - Ask questions
+- [Discord](https://discord.gg/cap) - Community chat
+
+### Reporting Bugs
+
+Include:
+1. **Environment**: OS, Docker version, deployment method
+2. **Steps to reproduce**: Exact steps to trigger the issue
+3. **Expected behavior**: What should happen
+4. **Actual behavior**: What actually happens
+5. **Logs**: Relevant error messages and stack traces
+6. **Configuration**: Sanitized environment variables
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Architecture" icon="diagram-project" href="/self-hosting/architecture">
+    Understand how Cap works
+  </Card>
+  <Card title="Scaling" icon="chart-line" href="/self-hosting/scaling">
+    Optimize for performance
+  </Card>
+  <Card title="Environment Variables" icon="gear" href="/self-hosting/environment-variables">
+    Review configuration options
+  </Card>
+  <Card title="Docker Compose" icon="docker" href="/self-hosting/docker-compose">
+    Deployment guide
+  </Card>
+</CardGroup>

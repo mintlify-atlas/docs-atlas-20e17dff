@@ -1,0 +1,136 @@
+---
+title: CLI Overview
+description: Command-line interface for Cap screen recording and video export
+---
+
+## Introduction
+
+The Cap CLI is a command-line tool for recording your screen and exporting Cap projects to video files. Built with Rust for performance and cross-platform compatibility.
+
+## Installation
+
+### From Source
+
+```bash
+git clone https://github.com/CapSoftware/cap.git
+cd cap
+cd apps/cli
+cargo build --release
+```
+
+The binary will be available at `target/release/cap`.
+
+## Commands
+
+The Cap CLI provides two main commands:
+
+<CardGroup cols={2}>
+  <Card title="Record" icon="circle" href="/cli/record">
+    Start a recording or list available capture targets
+  </Card>
+  <Card title="Export" icon="file-export" href="/cli/export">
+    Export a .cap project to an MP4 file
+  </Card>
+</CardGroup>
+
+## Quick Start
+
+### List Available Screens
+
+```bash
+cap record screens
+```
+
+### List Available Windows
+
+```bash
+cap record windows
+```
+
+### List Available Cameras
+
+```bash
+cap record cameras
+```
+
+### Record a Screen
+
+```bash
+cap record --screen <screen_id> --path recording.cap
+```
+
+### Export a Recording
+
+```bash
+cap export recording.cap output.mp4
+```
+
+## Command Structure
+
+The CLI uses the following structure:
+
+```
+cap <command> [subcommand] [options]
+```
+
+### Global Options
+
+The CLI uses structured logging for internal operations. Logs are filtered to show only Cap-related output.
+
+## Output Format
+
+### Recording Output
+
+Recordings are saved as `.cap` project files containing:
+- Video frames
+- Audio tracks
+- Metadata
+- Project settings
+
+### Export Output
+
+Exports produce standard MP4 video files with:
+- Configurable resolution (default: 1920x1080)
+- Configurable frame rate (default: 60fps)
+- Maximum compression
+- H.264 codec
+
+## Project File Location
+
+By default, recordings are saved to the current directory. Use the `--path` flag to specify a custom location.
+
+## Platform Support
+
+- **macOS:** Full support with native screen capture
+- **Windows:** Full support with native screen capture
+- **Linux:** Limited support (depends on available capture methods)
+
+## Technical Details
+
+### Built With
+
+- **Language:** Rust
+- **CLI Framework:** Clap
+- **Recording:** `cap-recording` crate
+- **Export:** `cap-export` crate
+- **Camera:** `cap-camera` crate
+
+### Dependencies
+
+```toml:apps/cli/Cargo.toml
+clap = { version = "4.5.23", features = ["derive"] }
+cap-recording = { path = "../../crates/recording" }
+cap-export = { path = "../../crates/export" }
+cap-camera = { path = "../../crates/camera" }
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Record Command" icon="circle" href="/cli/record">
+    Learn about all recording options and subcommands
+  </Card>
+  <Card title="Export Command" icon="file-export" href="/cli/export">
+    Learn about export options and settings
+  </Card>
+</CardGroup>

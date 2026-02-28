@@ -1,0 +1,328 @@
+---
+title: "Video Editing"
+description: "Edit your recordings with Cap Desktop's built-in video editor"
+---
+
+## Editor Overview
+
+Cap Desktop includes a powerful video editor for Studio Mode recordings. The editor provides timeline-based editing, visual effects, and export options.
+
+<Info>
+  The editor only opens for Studio Mode recordings. Instant Mode recordings are automatically processed and uploaded.
+</Info>
+
+## Opening the Editor
+
+The editor opens automatically after stopping a Studio Mode recording. You can also:
+
+- Open existing recordings from the recordings list
+- Import external videos via **Import** button
+
+## Editor Interface
+
+<Frame>
+  <img src="placeholder for editor interface screenshot" alt="Cap Desktop Editor" />
+</Frame>
+
+The editor is divided into key areas:
+
+1. **Header**: Resolution, playback controls, and export button
+2. **Preview**: Video preview with visual overlays
+3. **Timeline**: Track-based editing interface
+4. **Sidebar**: Configuration and effects panel
+
+## Timeline Editing
+
+### Timeline Structure
+
+The timeline shows multiple tracks:
+
+- **Video Track**: Main recording content
+- **Camera Track**: Picture-in-picture camera overlay
+- **Text Tracks**: Text overlays and annotations
+- **Scene Markers**: Section markers for organization
+
+### Playback Controls
+
+- **Play/Pause**: Spacebar or play button
+- **Scrub**: Click or drag the playhead in timeline
+- **Frame Step**: Arrow keys to move frame-by-frame
+- **Zoom**: Adjust timeline zoom level for precise editing
+
+<Tip>
+  Use the zoom track at the bottom to focus on specific sections of your recording.
+</Tip>
+
+### Trimming Video
+
+1. Click and drag the **start** or **end** handles on the video track
+2. Or select a range and use the trim tool
+3. Preview your changes in real-time
+
+<Info>
+  Trimming is non-destructive. Your original recording remains unchanged.
+</Info>
+
+## Visual Effects
+
+### Cropping
+
+1. Click the **Crop** button in the header
+2. Drag the crop handles in the preview
+3. Choose from preset aspect ratios:
+   - Original
+   - 16:9
+   - 9:16 (Vertical)
+   - 1:1 (Square)
+   - 4:3
+4. Or drag freely for custom dimensions
+5. Click **Apply** to confirm
+
+### Background Customization
+
+Add backgrounds to cropped videos:
+
+- **Solid Color**: Choose any color
+- **Gradient**: Select from gradient presets
+- **Blur**: Automatically blur the original video as background
+
+<Tabs>
+  <Tab title="Solid Background">
+    Perfect for clean, professional looks:
+    1. Open the Background settings
+    2. Choose **Solid**
+    3. Pick a color from the picker
+    4. Adjust opacity if needed
+  </Tab>
+  
+  <Tab title="Gradient Background">
+    Add visual interest:
+    1. Select **Gradient** mode
+    2. Choose from preset gradients
+    3. Customize colors and direction
+  </Tab>
+  
+  <Tab title="Blur Background">
+    Keep focus on content:
+    1. Select **Blur** mode
+    2. Adjust blur intensity
+    3. Works great with zoomed recordings
+  </Tab>
+</Tabs>
+
+### Rounding and Borders
+
+- **Corner Radius**: Round the corners of your video
+- **Border**: Add a border with customizable:
+  - Color
+  - Width
+  - Style
+
+### Shadow Effects
+
+Add depth with drop shadows:
+
+- Adjust shadow offset (X and Y)
+- Configure blur radius
+- Set shadow color and opacity
+
+## Text Overlays
+
+### Adding Text
+
+1. Click **Add Text** in the sidebar
+2. Type your text content
+3. Position the text in the preview
+4. Adjust timing in the timeline
+
+### Text Customization
+
+<Steps>
+  <Step title="Font">
+    Choose from available system fonts
+  </Step>
+  <Step title="Size">
+    Adjust text size with slider
+  </Step>
+  <Step title="Color">
+    Pick text color and add stroke/outline
+  </Step>
+  <Step title="Position">
+    Drag text in preview or set coordinates
+  </Step>
+  <Step title="Duration">
+    Set when text appears and disappears
+  </Step>
+</Steps>
+
+### Text Animations
+
+Coming soon: Fade in/out and motion animations.
+
+## Captions and Subtitles
+
+If your recording has AI-generated transcription:
+
+1. Open the **Captions** tab in sidebar
+2. Choose caption style preset or customize:
+   - Font family
+   - Font size
+   - Background
+   - Position
+3. Enable/disable captions for export
+
+<Info>
+  Captions are generated automatically for recordings with audio. Edit transcript accuracy in the web app before exporting.
+</Info>
+
+## Export Settings
+
+### Resolution
+
+Choose export resolution:
+
+- **1080p** (1920×1080) - Recommended
+- **1440p** (2560×1440) - Higher quality
+- **4K** (3840×2160) - Maximum quality
+- **Original** - Match source resolution
+
+<Warning>
+  Higher resolutions increase export time and file size. Choose based on your sharing needs.
+</Warning>
+
+### Format
+
+Cap exports to **MP4** format with:
+
+- H.264 video codec
+- AAC audio codec
+- Optimized for web streaming
+
+### Frame Rate
+
+Set export frame rate:
+
+- **30 FPS**: Standard web video
+- **60 FPS**: Smooth motion (recommended for recordings at 60fps+)
+
+### Compression
+
+<Tabs>
+  <Tab title="Web Optimized">
+    - Balanced quality and file size
+    - Best for online sharing
+    - Faster encoding
+  </Tab>
+  
+  <Tab title="High Quality">
+    - Maximum visual quality
+    - Larger file sizes
+    - Longer encoding time
+  </Tab>
+  
+  <Tab title="Custom BPP">
+    - Set custom bits-per-pixel
+    - For advanced users
+    - Fine-tune quality vs size
+  </Tab>
+</Tabs>
+
+## Exporting Your Video
+
+### Export and Save Locally
+
+1. Click **Export** in the header
+2. Choose export settings
+3. Click **Export**
+4. Choose save location
+5. Wait for rendering to complete
+
+<Info>
+  Export progress is shown with rendered frame count and total frames.
+</Info>
+
+### Export and Upload
+
+Share directly to Cap Web:
+
+1. Click **Share** button
+2. Video is rendered with your settings
+3. Upload progress is displayed
+4. Shareable link is automatically copied
+5. Link opens in browser (optional)
+
+<Note>
+  You must be signed in to upload videos. Videos longer than 5 minutes require Cap Pro.
+</Note>
+
+## Performance
+
+During editing:
+
+- Preview resolution is optimized for smooth playback
+- Enable the **Performance Overlay** to see frame timing
+- Large projects may require rendering time
+
+<Tip>
+  If preview playback is laggy, try:
+  - Lowering preview resolution
+  - Closing other applications
+  - Disabling effects temporarily
+</Tip>
+
+## Keyboard Shortcuts
+
+- **Space**: Play/Pause
+- **Left/Right Arrow**: Previous/Next frame
+- **Home**: Jump to start
+- **End**: Jump to end
+- **Delete**: Delete selected element
+
+## Saving Your Project
+
+Projects are saved automatically:
+
+- All edits are preserved
+- Reopen recordings from the recordings list
+- Your work is never lost
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Editor won't open">
+    - Ensure you recorded in Studio Mode
+    - Check that the recording file exists
+    - Try restarting Cap
+  </Accordion>
+  
+  <Accordion title="Export fails">
+    - Check available disk space
+    - Ensure export location is writable
+    - Try a lower resolution
+    - Check error logs in Settings → Feedback
+  </Accordion>
+  
+  <Accordion title="Preview is black">
+    - Wait for project to fully load
+    - Try scrubbing the timeline
+    - Restart the editor
+  </Accordion>
+  
+  <Accordion title="Slow rendering">
+    - Higher resolutions take longer
+    - Close other applications
+    - Consider using Web compression
+    - Disable unused effects
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Uploading Videos" icon="cloud-arrow-up" href="/web/uploading">
+    Share your edited videos on Cap Web
+  </Card>
+  <Card title="Settings" icon="gear" href="/desktop/settings">
+    Configure editor preferences
+  </Card>
+</CardGroup>
