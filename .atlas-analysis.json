@@ -1,0 +1,181 @@
+{
+  "projectType": "saas",
+  "projectName": "Cap",
+  "projectDescription": "Open source Loom alternative for beautiful, shareable screen recordings",
+  "theme": "almond",
+  "primaryColor": "#3B82F6",
+  "lightColor": "#60A5FA",
+  "darkColor": "#2563EB",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Get Started",
+        "groups": [
+          {
+            "group": "Introduction",
+            "pages": [
+              "introduction",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Installation",
+            "pages": [
+              "installation/desktop",
+              "installation/web"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Using Cap",
+        "groups": [
+          {
+            "group": "Desktop App",
+            "pages": [
+              "desktop/recording",
+              "desktop/camera",
+              "desktop/editing",
+              "desktop/settings"
+            ]
+          },
+          {
+            "group": "Web Platform",
+            "pages": [
+              "web/uploading",
+              "web/sharing",
+              "web/embedding",
+              "web/analytics"
+            ]
+          },
+          {
+            "group": "Features",
+            "pages": [
+              "features/transcription",
+              "features/ai-summaries",
+              "features/comments",
+              "features/reactions"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Self-Hosting",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "self-hosting/overview",
+              "self-hosting/quick-start"
+            ]
+          },
+          {
+            "group": "Deployment",
+            "pages": [
+              "self-hosting/docker-compose",
+              "self-hosting/railway",
+              "self-hosting/coolify"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "self-hosting/environment-variables",
+              "self-hosting/s3-storage",
+              "self-hosting/email-setup",
+              "self-hosting/ssl-https"
+            ]
+          },
+          {
+            "group": "Advanced",
+            "pages": [
+              "self-hosting/architecture",
+              "self-hosting/scaling",
+              "self-hosting/troubleshooting"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Development",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "development/setup",
+              "development/architecture",
+              "development/contributing"
+            ]
+          },
+          {
+            "group": "CLI Reference",
+            "pages": [
+              "cli/overview",
+              "cli/record",
+              "cli/export"
+            ]
+          },
+          {
+            "group": "API Reference",
+            "pages": [
+              "api/overview",
+              "api/authentication",
+              "api/videos",
+              "api/notifications"
+            ]
+          },
+          {
+            "group": "Packages",
+            "pages": [
+              "packages/database",
+              "packages/ui-components"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Resources",
+        "groups": [
+          {
+            "group": "Help",
+            "pages": [
+              "resources/faq",
+              "resources/troubleshooting",
+              "resources/support"
+            ]
+          },
+          {
+            "group": "Additional",
+            "pages": [
+              "resources/changelog",
+              "resources/roadmap",
+              "resources/license"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Screen and window recording with system audio",
+    "Built-in camera support with picture-in-picture",
+    "Video editing and trimming",
+    "AI-powered transcription and summaries",
+    "Shareable links with custom branding",
+    "Real-time analytics and viewer insights",
+    "Comments and reactions on videos",
+    "Self-hosting with Docker",
+    "Cross-platform desktop app (macOS, Windows)",
+    "Web-based video player and dashboard"
+  ],
+  "publicApiSurface": [
+    "Desktop API: Recording, Camera, Export",
+    "Web API: /video endpoints (upload, delete, analytics)",
+    "Web API: /notifications endpoints",
+    "Web API: /desktop endpoints (auth, config)",
+    "CLI: cap record [screens|windows|cameras]",
+    "CLI: cap export <project-path>",
+    "TypeScript packages: @cap/database, @cap/ui, @cap/utils",
+    "Rust crates: cap-recording, cap-camera, cap-rendering, cap-export"
+  ]
+}
